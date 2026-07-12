@@ -1,0 +1,40 @@
+{
+  "name": "esadelbot",
+  "version": "0.1.0",
+  "description": "Project Esadel Discord bot built with TypeScript, Discord.js, and MongoDB. Re-themed from Flower Sekai Miku for the Project Esadel creative crew server.",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "typescript",
+    "mongoose",
+    "project-sekai",
+    "mizuki"
+  ],
+  "author": "Azaken",
+  "license": "ISC",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "chrono-node": "^2.9.0",
+    "discord.js": "^14.19.2",
+    "dotenv": "^16.5.0",
+    "mongoose": "^8.15.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "tsx": "^4.21.0",
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.5"
+  }
+}
