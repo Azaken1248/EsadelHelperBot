@@ -1,5 +1,6 @@
 import type { Client } from "discord.js";
 
+import type { AppConfig } from "../../config/env";
 import type { Logger } from "../logger/logger";
 import type { ServiceToken } from "./container";
 
@@ -34,7 +35,6 @@ import type { ServiceToken } from "./container";
 // import type { SubmitApprovalHandler } from "../../commands/handlers/submit-approval-handler";
 // import type { SlashCommand } from "../../commands/contracts/slash-command";
 // import type { CommandRegistry } from "../../commands/registry/command-registry";
-// import type { AppConfig } from "../../config/env";
 // import type { CommandDeployer } from "../../discord/command-deployer";
 // import type { AssignmentRepository } from "../../repositories/interfaces/assignment-repository";
 // import type { GuildConfigRepository } from "../../repositories/interfaces/guild-config-repository";
@@ -63,7 +63,7 @@ export const TOKENS = {
   discordClient: createToken<Client>("discordClient"),
 
   // Config
-  // config: createToken<AppConfig>("config"),
+  config: createToken<AppConfig>("config"),
 
   // Repositories
   // userRepository: createToken<UserRepository>("userRepository"),
