@@ -17,10 +17,15 @@ export class TimezoneTranslationService {
 
   formatDeadline(deadline: Date, timezone: string | null): string {
     if (timezone && this.isValidTimezone(timezone)) {
+      // Explicit component options (rather than dateStyle/timeStyle) so we can
+      // include timeZoneName — the two families cannot be combined.
       return new Intl.DateTimeFormat("en-US", {
         timeZone: timezone,
-        dateStyle: "medium",
-        timeStyle: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
         timeZoneName: "short",
       }).format(deadline);
     }
