@@ -9,7 +9,7 @@ import {
   type Logger,
   type LogLevel,
 } from "../core/logger/logger";
-import { connectToDatabase } from "../database/connection";
+import { connectToDatabase, disconnectFromDatabase } from "../database/connection";
 import type { CommandDeployer } from "../discord/command-deployer";
 import type { ConfigCacheService } from "../services/config-cache-service";
 import type { GatekeeperService } from "../services/gatekeeper-service";
@@ -23,6 +23,7 @@ type SendableLogChannel = {
 
 export class EsadelBot {
   private logsChannelCache: { channelId: string; channel: SendableLogChannel } | null = null;
+  private shuttingDown = false;
 
   constructor(
     private readonly client: Client,
@@ -54,6 +55,7 @@ export class EsadelBot {
     const commands = this.commandLoader.load();
     this.interactionCreateHandler.attach(this.client);
     this.attachGatekeeper();
+    this.registerShutdownHandlers();
 
     this.client.once(Events.ClientReady, async (readyClient) => {
       this.logger.info("Discord client ready.", {
@@ -71,6 +73,37 @@ export class EsadelBot {
     });
 
     await this.client.login(this.config.discord.token);
+  }
+
+  private registerShutdownHandlers(): void {
+    const shutdown = async (signal: NodeJS.Signals): Promise<void> => {
+      if (this.shuttingDown) {
+        return;
+      }
+      this.shuttingDown = true;
+
+      this.logger.info("Shutting down.", { signal });
+      this.taskReminderDispatcherService.stop();
+
+      try {
+        await disconnectFromDatabase(this.logger);
+      } catch (error) {
+        this.logger.warn("Failed to disconnect from MongoDB during shutdown.", {
+          message: error instanceof Error ? error.message : "Unknown error.",
+        });
+      }
+
+      try {
+        await this.client.destroy();
+      } catch {
+        // Best-effort — we're exiting anyway.
+      }
+
+      process.exit(0);
+    };
+
+    process.once("SIGINT", () => void shutdown("SIGINT"));
+    process.once("SIGTERM", () => void shutdown("SIGTERM"));
   }
 
   private attachGatekeeper(): void {
@@ -214,9 +247,13 @@ export class EsadelBot {
     try {
       await channel.send({ embeds: [embed] });
     } catch (error) {
-      this.logger.error("Failed to forward Esadel log embed to Discord.", {
-        errorMessage: error instanceof Error ? error.message : "Unknown error",
-      });
+      // Never route this failure back through this.logger — the Discord sink is
+      // registered on it, so doing so would re-enter sendLogEntryToChannel and
+      // loop indefinitely while the channel stays unavailable. Log to console.
+      console.error(
+        "Failed to forward Esadel log embed to Discord.",
+        error instanceof Error ? error.message : "Unknown error",
+      );
     }
   }
 
