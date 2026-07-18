@@ -29,12 +29,12 @@ import type { ServiceToken } from "./container";
 // ─────────────────────────────────────────────────────────────────────────────
 
 // import type { EsadelBot } from "../../app/bot";
-// import type { CommandLoader } from "../../commands/loader/command-loader";
-// import type { InteractionCreateHandler } from "../../commands/handlers/interaction-create-handler";
-// import type { StrikeAppealHandler } from "../../commands/handlers/strike-appeal-handler";
-// import type { SubmitApprovalHandler } from "../../commands/handlers/submit-approval-handler";
+import type { CommandLoader } from "../../commands/loader/command-loader";
+import type { InteractionCreateHandler } from "../../commands/handlers/interaction-create-handler";
+import type { StrikeAppealHandler } from "../../commands/handlers/strike-appeal-handler";
+import type { SubmitApprovalHandler } from "../../commands/handlers/submit-approval-handler";
 // import type { SlashCommand } from "../../commands/contracts/slash-command";
-// import type { CommandRegistry } from "../../commands/registry/command-registry";
+import type { CommandRegistry } from "../../commands/registry/command-registry";
 import type { CommandDeployer } from "../../discord/command-deployer";
 import type { AssignmentRepository } from "../../repositories/interfaces/assignment-repository";
 import type { GuildConfigRepository } from "../../repositories/interfaces/guild-config-repository";
@@ -87,11 +87,11 @@ export const TOKENS = {
 
   // Commands
   // commands: createToken<SlashCommand[]>("commands"),
-  // commandRegistry: createToken<CommandRegistry>("commandRegistry"),
-  // commandLoader: createToken<CommandLoader>("commandLoader"),
-  // interactionCreateHandler: createToken<InteractionCreateHandler>("interactionCreateHandler"),
-  // submitApprovalHandler: createToken<SubmitApprovalHandler>("submitApprovalHandler"),
-  // strikeAppealHandler: createToken<StrikeAppealHandler>("strikeAppealHandler"),
+  commandRegistry: createToken<CommandRegistry>("commandRegistry"),
+  commandLoader: createToken<CommandLoader>("commandLoader"),
+  interactionCreateHandler: createToken<InteractionCreateHandler>("interactionCreateHandler"),
+  submitApprovalHandler: createToken<SubmitApprovalHandler>("submitApprovalHandler"),
+  strikeAppealHandler: createToken<StrikeAppealHandler>("strikeAppealHandler"),
 
   // Discord
   commandDeployer: createToken<CommandDeployer>("commandDeployer"),
