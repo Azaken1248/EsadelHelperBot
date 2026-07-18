@@ -42,16 +42,16 @@ import type { StrikeRepository } from "../../repositories/interfaces/strike-repo
 import type { TaskReminderRepository } from "../../repositories/interfaces/task-reminder-repository";
 import type { UserRepository } from "../../repositories/interfaces/user-repository";
 import type { VerificationRepository } from "../../repositories/interfaces/verification-repository";
-// import type { AssignmentService } from "../../services/assignment-service";
-// import type { BulkAssignmentService } from "../../services/bulk-assignment-service";
-// import type { ConfigCacheService } from "../../services/config-cache-service";
-// import type { GatekeeperService } from "../../services/gatekeeper-service";
-// import type { StrikeService } from "../../services/strike-service";
-// import type { TaskReminderBootstrapService } from "../../services/task-reminder-bootstrap-service";
-// import type { TaskReminderDispatcherService } from "../../services/task-reminder-dispatcher-service";
-// import type { TaskReminderScheduleService } from "../../services/task-reminder-schedule-service";
-// import type { TimezoneService } from "../../services/timezone-service";
-// import type { UserService } from "../../services/user-service";
+import type { AssignmentService } from "../../services/assignment-service";
+import type { BulkAssignmentService } from "../../services/bulk-assignment-service";
+import type { ConfigCacheService } from "../../services/config-cache-service";
+import type { GatekeeperService } from "../../services/gatekeeper-service";
+import type { StrikeService } from "../../services/strike-service";
+import type { TaskReminderBootstrapService } from "../../services/task-reminder-bootstrap-service";
+import type { TaskReminderDispatcherService } from "../../services/task-reminder-dispatcher-service";
+import type { TaskReminderScheduleService } from "../../services/task-reminder-schedule-service";
+import type { TimezoneTranslationService } from "../../services/timezone-translation-service";
+import type { UserService } from "../../services/user-service";
 
 const createToken = <T>(description: string): ServiceToken<T> => {
   return Symbol(description) as ServiceToken<T>;
@@ -74,16 +74,16 @@ export const TOKENS = {
   strikeRepository: createToken<StrikeRepository>("strikeRepository"),
 
   // Services
-  // userService: createToken<UserService>("userService"),
-  // taskReminderScheduleService: createToken<TaskReminderScheduleService>("taskReminderScheduleService"),
-  // taskReminderBootstrapService: createToken<TaskReminderBootstrapService>("taskReminderBootstrapService"),
-  // taskReminderDispatcherService: createToken<TaskReminderDispatcherService>("taskReminderDispatcherService"),
-  // assignmentService: createToken<AssignmentService>("assignmentService"),
-  // bulkAssignmentService: createToken<BulkAssignmentService>("bulkAssignmentService"),
-  // timezoneService: createToken<TimezoneService>("timezoneService"),
-  // gatekeeperService: createToken<GatekeeperService>("gatekeeperService"),
-  // configCacheService: createToken<ConfigCacheService>("configCacheService"),
-  // strikeService: createToken<StrikeService>("strikeService"),
+  userService: createToken<UserService>("userService"),
+  taskReminderScheduleService: createToken<TaskReminderScheduleService>("taskReminderScheduleService"),
+  taskReminderBootstrapService: createToken<TaskReminderBootstrapService>("taskReminderBootstrapService"),
+  taskReminderDispatcherService: createToken<TaskReminderDispatcherService>("taskReminderDispatcherService"),
+  assignmentService: createToken<AssignmentService>("assignmentService"),
+  bulkAssignmentService: createToken<BulkAssignmentService>("bulkAssignmentService"),
+  timezoneService: createToken<TimezoneTranslationService>("timezoneService"),
+  gatekeeperService: createToken<GatekeeperService>("gatekeeperService"),
+  configCacheService: createToken<ConfigCacheService>("configCacheService"),
+  strikeService: createToken<StrikeService>("strikeService"),
 
   // Commands
   // commands: createToken<SlashCommand[]>("commands"),
