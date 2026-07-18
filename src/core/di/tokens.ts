@@ -4,31 +4,10 @@ import type { AppConfig } from "../../config/env";
 import type { Logger } from "../logger/logger";
 import type { ServiceToken } from "./container";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Forward-referenced tokens.
-//
-// The DI registry is the one core file that points at every other layer. To keep
-// `npm run build` green during the phased scaffold, each token below is enabled
-// only once its target module exists. As later phases add a module, uncomment its
-// `import type` above and the matching `createToken<…>()` line below. The full,
-// final token set is preserved as comments so nothing is lost.
-//
-//   Phase — Config:        config
-//   Phase — Database/Repos: userRepository, assignmentRepository,
-//                           guildConfigRepository, taskReminderRepository,
-//                           verificationRepository, strikeRepository
-//   Phase — Services:      userService, assignmentService, bulkAssignmentService,
-//                           timezoneService, gatekeeperService, strikeService,
-//                           configCacheService, taskReminderScheduleService,
-//                           taskReminderBootstrapService, taskReminderDispatcherService
-//   Phase — Commands:      commands, commandRegistry, commandLoader,
-//                           interactionCreateHandler, submitApprovalHandler,
-//                           strikeAppealHandler
-//   Phase — Discord:       commandDeployer
-//   Phase — App/Bootstrap: bot
-// ─────────────────────────────────────────────────────────────────────────────
+// The DI registry points at every layer. Type-only imports keep it free of
+// runtime cycles; the concrete factories are wired in bootstrap/build-container.
 
-// import type { EsadelBot } from "../../app/bot";
+import type { EsadelBot } from "../../app/bot";
 import type { CommandLoader } from "../../commands/loader/command-loader";
 import type { InteractionCreateHandler } from "../../commands/handlers/interaction-create-handler";
 import type { StrikeAppealHandler } from "../../commands/handlers/strike-appeal-handler";
@@ -58,7 +37,6 @@ const createToken = <T>(description: string): ServiceToken<T> => {
 };
 
 export const TOKENS = {
-  // Active — target modules exist as of the Core layer.
   logger: createToken<Logger>("logger"),
   discordClient: createToken<Client>("discordClient"),
 
@@ -97,5 +75,5 @@ export const TOKENS = {
   commandDeployer: createToken<CommandDeployer>("commandDeployer"),
 
   // App / Bootstrap
-  // bot: createToken<EsadelBot>("bot"),
+  bot: createToken<EsadelBot>("bot"),
 } as const;
