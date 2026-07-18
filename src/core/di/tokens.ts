@@ -36,12 +36,12 @@ import type { ServiceToken } from "./container";
 // import type { SlashCommand } from "../../commands/contracts/slash-command";
 // import type { CommandRegistry } from "../../commands/registry/command-registry";
 // import type { CommandDeployer } from "../../discord/command-deployer";
-// import type { AssignmentRepository } from "../../repositories/interfaces/assignment-repository";
-// import type { GuildConfigRepository } from "../../repositories/interfaces/guild-config-repository";
-// import type { StrikeRepository } from "../../repositories/interfaces/strike-repository";
-// import type { TaskReminderRepository } from "../../repositories/interfaces/task-reminder-repository";
-// import type { UserRepository } from "../../repositories/interfaces/user-repository";
-// import type { VerificationRepository } from "../../repositories/interfaces/verification-repository";
+import type { AssignmentRepository } from "../../repositories/interfaces/assignment-repository";
+import type { GuildConfigRepository } from "../../repositories/interfaces/guild-config-repository";
+import type { StrikeRepository } from "../../repositories/interfaces/strike-repository";
+import type { TaskReminderRepository } from "../../repositories/interfaces/task-reminder-repository";
+import type { UserRepository } from "../../repositories/interfaces/user-repository";
+import type { VerificationRepository } from "../../repositories/interfaces/verification-repository";
 // import type { AssignmentService } from "../../services/assignment-service";
 // import type { BulkAssignmentService } from "../../services/bulk-assignment-service";
 // import type { ConfigCacheService } from "../../services/config-cache-service";
@@ -66,12 +66,12 @@ export const TOKENS = {
   config: createToken<AppConfig>("config"),
 
   // Repositories
-  // userRepository: createToken<UserRepository>("userRepository"),
-  // assignmentRepository: createToken<AssignmentRepository>("assignmentRepository"),
-  // guildConfigRepository: createToken<GuildConfigRepository>("guildConfigRepository"),
-  // taskReminderRepository: createToken<TaskReminderRepository>("taskReminderRepository"),
-  // verificationRepository: createToken<VerificationRepository>("verificationRepository"),
-  // strikeRepository: createToken<StrikeRepository>("strikeRepository"),
+  userRepository: createToken<UserRepository>("userRepository"),
+  assignmentRepository: createToken<AssignmentRepository>("assignmentRepository"),
+  guildConfigRepository: createToken<GuildConfigRepository>("guildConfigRepository"),
+  taskReminderRepository: createToken<TaskReminderRepository>("taskReminderRepository"),
+  verificationRepository: createToken<VerificationRepository>("verificationRepository"),
+  strikeRepository: createToken<StrikeRepository>("strikeRepository"),
 
   // Services
   // userService: createToken<UserService>("userService"),
