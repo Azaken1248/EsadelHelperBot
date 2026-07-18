@@ -3,12 +3,16 @@ import type {
   ChatInputCommandInteraction,
   SlashCommandBuilder,
   SlashCommandOptionsOnlyBuilder,
+  SlashCommandSubcommandsOnlyBuilder,
 } from "discord.js";
 
 import type { CommandExecutionContext } from "./command-execution-context";
 
 export interface SlashCommand {
-  readonly data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder;
+  readonly data:
+    | SlashCommandBuilder
+    | SlashCommandOptionsOnlyBuilder
+    | SlashCommandSubcommandsOnlyBuilder;
   readonly requiredRoleIds?: readonly string[];
   execute(
     interaction: ChatInputCommandInteraction,

@@ -33,7 +33,7 @@ import type { CommandLoader } from "../../commands/loader/command-loader";
 import type { InteractionCreateHandler } from "../../commands/handlers/interaction-create-handler";
 import type { StrikeAppealHandler } from "../../commands/handlers/strike-appeal-handler";
 import type { SubmitApprovalHandler } from "../../commands/handlers/submit-approval-handler";
-// import type { SlashCommand } from "../../commands/contracts/slash-command";
+import type { SlashCommand } from "../../commands/contracts/slash-command";
 import type { CommandRegistry } from "../../commands/registry/command-registry";
 import type { CommandDeployer } from "../../discord/command-deployer";
 import type { AssignmentRepository } from "../../repositories/interfaces/assignment-repository";
@@ -86,7 +86,7 @@ export const TOKENS = {
   strikeService: createToken<StrikeService>("strikeService"),
 
   // Commands
-  // commands: createToken<SlashCommand[]>("commands"),
+  commands: createToken<SlashCommand[]>("commands"),
   commandRegistry: createToken<CommandRegistry>("commandRegistry"),
   commandLoader: createToken<CommandLoader>("commandLoader"),
   interactionCreateHandler: createToken<InteractionCreateHandler>("interactionCreateHandler"),
