@@ -35,7 +35,7 @@ import type { ServiceToken } from "./container";
 // import type { SubmitApprovalHandler } from "../../commands/handlers/submit-approval-handler";
 // import type { SlashCommand } from "../../commands/contracts/slash-command";
 // import type { CommandRegistry } from "../../commands/registry/command-registry";
-// import type { CommandDeployer } from "../../discord/command-deployer";
+import type { CommandDeployer } from "../../discord/command-deployer";
 import type { AssignmentRepository } from "../../repositories/interfaces/assignment-repository";
 import type { GuildConfigRepository } from "../../repositories/interfaces/guild-config-repository";
 import type { StrikeRepository } from "../../repositories/interfaces/strike-repository";
@@ -94,7 +94,7 @@ export const TOKENS = {
   // strikeAppealHandler: createToken<StrikeAppealHandler>("strikeAppealHandler"),
 
   // Discord
-  // commandDeployer: createToken<CommandDeployer>("commandDeployer"),
+  commandDeployer: createToken<CommandDeployer>("commandDeployer"),
 
   // App / Bootstrap
   // bot: createToken<EsadelBot>("bot"),
