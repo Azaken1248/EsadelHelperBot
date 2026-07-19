@@ -12,6 +12,7 @@ import {
 
 import { SPECIALIZED_ROLE_LABELS, type SpecializedRoleKey } from "../../../config/constants";
 import { createEsadelEmbed } from "../../../presentation/esadel-embed";
+import { reactSafely } from "../../../utils/reactions";
 import type { CommandExecutionContext } from "../../contracts/command-execution-context";
 import type { SlashCommand } from "../../contracts/slash-command";
 
@@ -137,7 +138,8 @@ export class SubmitCommand implements SlashCommand {
     }
 
     try {
-      await interaction.channel.send(approvalPayload);
+      const approvalMessage = await interaction.channel.send(approvalPayload);
+      await reactSafely(approvalMessage, ["🎀"]);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown send failure.";
       context.logger.error("Failed to send approval embed to current channel.", {

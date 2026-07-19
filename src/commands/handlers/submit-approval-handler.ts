@@ -8,6 +8,7 @@ import type { AppConfig } from "../../config/env";
 import type { Logger } from "../../core/logger/logger";
 import { createEsadelEmbed } from "../../presentation/esadel-embed";
 import { hasPermissionBypass } from "../../security/permission-bypass";
+import { reactSafely } from "../../utils/reactions";
 import type { AssignmentService } from "../../services/assignment-service";
 
 const SUBMIT_APPROVE_PREFIX = "submit_approve:";
@@ -115,6 +116,7 @@ export class SubmitApprovalHandler {
       embeds: [approvedEmbed],
       components: [],
     });
+    await reactSafely(interaction.message, ["🎀", "✨"]);
 
     this.logger.info("Submission approved via button.", {
       assignmentId,
@@ -154,6 +156,7 @@ export class SubmitApprovalHandler {
       embeds: [deniedEmbed],
       components: [],
     });
+    await reactSafely(interaction.message, ["💭"]);
 
     this.logger.info("Submission denied via button.", {
       assignmentId,

@@ -158,7 +158,10 @@ export class HelpCommand implements SlashCommand {
       embeds: [
         createEsadelEmbed({
           title: "Esadel Help Desk 📖",
-          description: "> Here's everything I can do! Use `/help command:<name>` for details on a specific command.",
+          description:
+            "> Hi hi~! I'm **Amia** ♪ Here's everything I can do!\n" +
+            "> ✨ New here? Say `/amia` to meet me, `/ask` me anything about the lore, or try `/fact` & `/quote` for fun~\n" +
+            "> Use `/help command:<name>` for details on any command. Hehe~",
           tone: "lavender",
           voiceWrap: false,
           fields,

@@ -8,6 +8,7 @@ import type { AppConfig } from "../../config/env";
 import type { Logger } from "../../core/logger/logger";
 import { createEsadelEmbed, type EsadelTone } from "../../presentation/esadel-embed";
 import { hasPermissionBypass } from "../../security/permission-bypass";
+import { reactSafely } from "../../utils/reactions";
 import type { StrikeService } from "../../services/strike-service";
 
 const APPEAL_ACCEPT_PREFIX = "appeal_accept:";
@@ -114,6 +115,7 @@ export class StrikeAppealHandler {
         embeds: [acceptedEmbed],
         components: [],
       });
+      await reactSafely(interaction.message, ["🎀", "✨"]);
 
       await this.logToChannel(interaction, `Appeal for strike \`${strikeId}\` **accepted** by <@${interaction.user.id}>. Strike removed.`, "sakura", result.newStrikeCount);
       return;
@@ -143,6 +145,7 @@ export class StrikeAppealHandler {
       embeds: [deniedEmbed],
       components: [],
     });
+    await reactSafely(interaction.message, ["💭"]);
 
     await this.logToChannel(interaction, `Appeal for strike \`${strikeId}\` **denied** by <@${interaction.user.id}>.`, "lavender", result.newStrikeCount);
   }
