@@ -15,7 +15,11 @@ const run = async (): Promise<void> => {
   const container = buildContainer();
   const bot = container.resolve(TOKENS.bot);
 
-  await bot.start();
+  const result = await bot.start();
+  if (!result.ok) {
+    console.error("Fatal startup error.", result.error);
+    process.exit(1);
+  }
 };
 
 void run().catch((error) => {

@@ -1,8 +1,6 @@
 import {
   type ButtonInteraction,
   type ChatInputCommandInteraction,
-  Client,
-  Events,
   MessageFlags,
   type Interaction,
 } from "discord.js";
@@ -26,13 +24,7 @@ export class InteractionCreateHandler {
     private readonly logger: Logger,
   ) {}
 
-  attach(client: Client): void {
-    client.on(Events.InteractionCreate, async (interaction) => {
-      await this.handleInteraction(interaction);
-    });
-  }
-
-  private async handleInteraction(interaction: Interaction): Promise<void> {
+  async handleInteraction(interaction: Interaction): Promise<void> {
     if (interaction.isButton()) {
       await this.handleButtonInteraction(interaction);
       return;

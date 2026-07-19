@@ -1,6 +1,8 @@
 import { Client, GatewayIntentBits } from "discord.js";
 
 import { EsadelBot } from "../app/bot";
+import type { BotEventMap } from "../app/bot-events";
+import { createEventBus } from "../core/events/event-bus";
 import { InteractionCreateHandler } from "../commands/handlers/interaction-create-handler";
 import { StrikeAppealHandler } from "../commands/handlers/strike-appeal-handler";
 import { SubmitApprovalHandler } from "../commands/handlers/submit-approval-handler";
@@ -35,6 +37,7 @@ export const buildContainer = (): ServiceContainer => {
 
   container.registerSingleton(TOKENS.config, () => loadAppConfig());
   container.registerSingleton(TOKENS.logger, () => createLogger("EsadelBot"));
+  container.registerSingleton(TOKENS.eventBus, () => createEventBus<BotEventMap>());
 
   container.registerSingleton(
     TOKENS.discordClient,
@@ -248,6 +251,7 @@ export const buildContainer = (): ServiceContainer => {
         resolver.resolve(TOKENS.taskReminderBootstrapService),
         resolver.resolve(TOKENS.taskReminderDispatcherService),
         resolver.resolve(TOKENS.gatekeeperService),
+        resolver.resolve(TOKENS.eventBus),
       ),
   );
 

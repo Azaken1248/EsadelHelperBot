@@ -1,14 +1,17 @@
-import { Client, Events } from "discord.js";
+import { Client, Events, type GuildMember } from "discord.js";
 
+import type { SlashCommand } from "../commands/contracts/slash-command";
 import type { InteractionCreateHandler } from "../commands/handlers/interaction-create-handler";
 import type { CommandLoader } from "../commands/loader/command-loader";
 import type { AppConfig } from "../config/env";
+import type { EventBus } from "../core/events/event-bus";
 import {
   isLogSinkRegistrar,
   type LogEntry,
   type Logger,
   type LogLevel,
 } from "../core/logger/logger";
+import { err, ok, type Result } from "../core/result/result";
 import { connectToDatabase, disconnectFromDatabase } from "../database/connection";
 import type { CommandDeployer } from "../discord/command-deployer";
 import type { ConfigCacheService } from "../services/config-cache-service";
@@ -16,6 +19,7 @@ import type { GatekeeperService } from "../services/gatekeeper-service";
 import type { TaskReminderBootstrapService } from "../services/task-reminder-bootstrap-service";
 import type { TaskReminderDispatcherService } from "../services/task-reminder-dispatcher-service";
 import { createEsadelEmbed, type EsadelTone } from "../presentation/esadel-embed";
+import type { BotEventMap } from "./bot-events";
 
 type SendableLogChannel = {
   send(payload: { content?: string; embeds?: unknown[] }): Promise<unknown>;
@@ -36,43 +40,96 @@ export class EsadelBot {
     private readonly taskReminderBootstrapService: TaskReminderBootstrapService,
     private readonly taskReminderDispatcherService: TaskReminderDispatcherService,
     private readonly gatekeeperService: GatekeeperService,
+    private readonly eventBus: EventBus<BotEventMap>,
   ) {}
 
-  async start(): Promise<void> {
-    await connectToDatabase(this.config.mongo.uri, this.logger);
-
-    const startupGuildId = process.env.GUILD_ID?.trim() || this.config.discord.guildId;
-    await this.configCacheService.loadConfig(startupGuildId);
+  async start(): Promise<Result<void, Error>> {
     try {
-      await this.taskReminderBootstrapService.runStartupSync();
+      await connectToDatabase(this.config.mongo.uri, this.logger);
+
+      const startupGuildId = process.env.GUILD_ID?.trim() || this.config.discord.guildId;
+      await this.configCacheService.loadConfig(startupGuildId);
+      try {
+        await this.taskReminderBootstrapService.runStartupSync();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Unknown reminder bootstrap failure.";
+        this.logger.error("Reminder bootstrap sync failed. Continuing startup.", {
+          message,
+        });
+      }
+
+      const commands = this.commandLoader.load();
+      this.wireEventBus(commands);
+      this.registerShutdownHandlers();
+
+      await this.client.login(this.config.discord.token);
+      return ok(undefined);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown reminder bootstrap failure.";
-      this.logger.error("Reminder bootstrap sync failed. Continuing startup.", {
+      return err(error instanceof Error ? error : new Error(String(error)));
+    }
+  }
+
+  /**
+   * Realizes the Gateway → Event Bus → handler flow (ARCHITECTURE.md §2): the
+   * Discord client publishes gateway events onto the bus, and the handlers
+   * subscribe, keeping the two decoupled.
+   */
+  private wireEventBus(commands: readonly SlashCommand[]): void {
+    this.client.once(Events.ClientReady, (readyClient) => {
+      this.eventBus.emit("clientReady", { botTag: readyClient.user.tag });
+    });
+    this.client.on(Events.InteractionCreate, (interaction) => {
+      this.eventBus.emit("interactionCreate", interaction);
+    });
+    if (this.gatekeeperService.isEnabled()) {
+      this.client.on(Events.GuildMemberAdd, (member) => {
+        this.eventBus.emit("guildMemberAdd", member);
+      });
+    } else {
+      this.logger.info("Gatekeeper disabled (ROLE_UNVERIFIED_ID unset); skipping join listener.");
+    }
+
+    this.eventBus.on("clientReady", (payload) => {
+      void this.onClientReady(payload, commands);
+    });
+    this.eventBus.on("interactionCreate", (interaction) => {
+      void this.interactionCreateHandler.handleInteraction(interaction).catch((error) => {
+        this.logger.error("Interaction handling failed.", {
+          message: error instanceof Error ? error.message : "Unknown error.",
+        });
+      });
+    });
+    this.eventBus.on("guildMemberAdd", (member) => {
+      void this.handleMemberJoin(member);
+    });
+  }
+
+  private async onClientReady(
+    payload: { botTag: string },
+    commands: readonly SlashCommand[],
+  ): Promise<void> {
+    this.logger.info("Discord client ready.", { botTag: payload.botTag });
+
+    await this.enableDiscordLogForwarding();
+
+    this.taskReminderDispatcherService.start();
+
+    void this.commandDeployer.deploy(commands).catch((error) => {
+      const message = error instanceof Error ? error.message : "Unknown deploy failure.";
+      this.logger.error("Failed to deploy slash commands.", { message });
+    });
+  }
+
+  private async handleMemberJoin(member: GuildMember): Promise<void> {
+    try {
+      await this.gatekeeperService.onMemberJoin(member);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown gatekeeper failure.";
+      this.logger.error("Gatekeeper failed to process new member.", {
+        discordUserId: member.id,
         message,
       });
     }
-
-    const commands = this.commandLoader.load();
-    this.interactionCreateHandler.attach(this.client);
-    this.attachGatekeeper();
-    this.registerShutdownHandlers();
-
-    this.client.once(Events.ClientReady, async (readyClient) => {
-      this.logger.info("Discord client ready.", {
-        botTag: readyClient.user.tag,
-      });
-
-      await this.enableDiscordLogForwarding();
-
-      this.taskReminderDispatcherService.start();
-
-      void this.commandDeployer.deploy(commands).catch((error) => {
-        const message = error instanceof Error ? error.message : "Unknown deploy failure.";
-        this.logger.error("Failed to deploy slash commands.", { message });
-      });
-    });
-
-    await this.client.login(this.config.discord.token);
   }
 
   private registerShutdownHandlers(): void {
@@ -104,25 +161,6 @@ export class EsadelBot {
 
     process.once("SIGINT", () => void shutdown("SIGINT"));
     process.once("SIGTERM", () => void shutdown("SIGTERM"));
-  }
-
-  private attachGatekeeper(): void {
-    if (!this.gatekeeperService.isEnabled()) {
-      this.logger.info("Gatekeeper disabled (ROLE_UNVERIFIED_ID unset); skipping join listener.");
-      return;
-    }
-
-    this.client.on(Events.GuildMemberAdd, async (member) => {
-      try {
-        await this.gatekeeperService.onMemberJoin(member);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Unknown gatekeeper failure.";
-        this.logger.error("Gatekeeper failed to process new member.", {
-          discordUserId: member.id,
-          message,
-        });
-      }
-    });
   }
 
   private async enableDiscordLogForwarding(): Promise<void> {
