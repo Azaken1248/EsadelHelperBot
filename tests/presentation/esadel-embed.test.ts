@@ -11,9 +11,12 @@ describe("createEsadelEmbed", () => {
 
     expect(embed.color).toBe(ESADEL_PALETTE.lavender);
     expect(embed.title).toBe("Amia");
-    expect(embed.footer?.text).toBe("Amia · Project Esadel");
-    expect(embed.description).toContain("Just a little update~");
-    expect(embed.description).toContain("Let me know if you need anything!");
+    // Footer rotates through Amia signatures, but always carries her name.
+    expect(embed.footer?.text).toContain("Amia");
+    // Voice-wrapped: the raw text survives but is surrounded by opener/closer.
+    expect(embed.description).toContain("System is ready.");
+    expect(embed.description).not.toBe("System is ready.");
+    expect(embed.description.length).toBeGreaterThan("System is ready.".length);
   });
 
   it("keeps raw description when voiceWrap is false", () => {

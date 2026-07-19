@@ -57,28 +57,40 @@ export interface EsadelEmbedOptions {
 }
 
 const DEFAULT_TITLE = "Amia";
-const DEFAULT_FOOTER = "Amia · Project Esadel";
 
-// Tone-specific openers/closers (PERSONALITY_GUIDE.md §2.1).
-const TONE_OPENERS: Readonly<Record<EsadelTone, string>> = {
-  sakura: "Great news~! ",
-  lavender: "Just a little update~ ",
-  cream: "Hey there~ ",
-  rose: "Hmm, just a heads up~ ",
-  twilight: "Oh no~ ",
+// Rotating footer signatures — every one carries "Amia" for brand consistency,
+// with a little Mizuki flourish so no two embeds feel identical.
+const AMIA_FOOTERS: readonly string[] = [
+  "Amia · Project Esadel ♪",
+  "Amia · anything cute is welcome ♡",
+  "Amia · 25-ji, Nightcord de. 🎀",
+  "Amia · styling your tasks 🍬",
+  "Amia · hehe~ ♪",
+];
+
+// Tone-specific opener/closer pools in Mizuki's voice (PERSONALITY_GUIDE.md §2.1),
+// picked at random so the persona reads as lively rather than canned.
+const TONE_OPENERS: Readonly<Record<EsadelTone, readonly string[]>> = {
+  sakura: ["Great news~! ", "Yay~! ", "Ehehe, look at this~! "],
+  lavender: ["Just a little update~ ", "Okay, quick note~ ", "Here you go~ "],
+  cream: ["Hey there~ ", "Hi hi~! ", "Heya~ "],
+  rose: ["Hmm, just a heads up~ ", "Ah, hold on a sec~ ", "Mm, careful now~ "],
+  twilight: ["Oh no~ ", "Uwah, oops~ ", "Ahh, that's no good~ "],
 };
 
-const TONE_NUDGES: Readonly<Record<EsadelTone, string>> = {
-  sakura: " Keep it up, you're doing wonderfully ♡",
-  lavender: " Let me know if you need anything!",
-  cream: " I'm here if you need me ♡",
-  rose: " We can figure this out together!",
-  twilight: " Let's fix this together, okay?",
+const TONE_NUDGES: Readonly<Record<EsadelTone, readonly string[]>> = {
+  sakura: [" Keep it up, you're doing wonderfully ♡", " So proud of you~ ♪", " Let's keep it cute~ 🎀"],
+  lavender: [" Let me know if you need anything!", " Ping me anytime, okay? ♪", " That's all for now~ ♡"],
+  cream: [" I'm here if you need me ♡", " Ready to style some tasks? ♪", " Let's have a good one~ 🎀"],
+  rose: [" We can figure this out together!", " Don't sweat it too much, okay? ♡", " Let's fix it up all cute~ ♪"],
+  twilight: [" Let's fix this together, okay?", " Don't worry, we've got this~ ♡", " Deep breath — we'll sort it out ♪"],
 };
+
+const pickRandom = <T>(pool: readonly T[]): T => pool[Math.floor(Math.random() * pool.length)]!;
 
 const buildEsadelVoiceDescription = (description: string, tone: EsadelTone): string => {
   const trimmedDescription = description.trim();
-  return `${TONE_OPENERS[tone]}${trimmedDescription}${TONE_NUDGES[tone]}`;
+  return `${pickRandom(TONE_OPENERS[tone])}${trimmedDescription}${pickRandom(TONE_NUDGES[tone])}`;
 };
 
 export const createEsadelEmbed = (options: EsadelEmbedOptions): EmbedBuilder => {
@@ -92,7 +104,7 @@ export const createEsadelEmbed = (options: EsadelEmbedOptions): EmbedBuilder => 
     .setColor(ESADEL_PALETTE[tone])
     .setTitle(options.title ?? DEFAULT_TITLE)
     .setDescription(description)
-    .setFooter({ text: DEFAULT_FOOTER })
+    .setFooter({ text: pickRandom(AMIA_FOOTERS) })
     .setTimestamp();
 
   if (options.fields?.length) {

@@ -1,4 +1,4 @@
-import { Client, Events, type GuildMember } from "discord.js";
+import { ActivityType, Client, Events, type GuildMember } from "discord.js";
 
 import type { SlashCommand } from "../commands/contracts/slash-command";
 import type { InteractionCreateHandler } from "../commands/handlers/interaction-create-handler";
@@ -25,9 +25,20 @@ type SendableLogChannel = {
   send(payload: { content?: string; embeds?: unknown[] }): Promise<unknown>;
 };
 
+const AMIA_ACTIVITIES: readonly { type: ActivityType; name: string }[] = [
+  { type: ActivityType.Listening, name: "25-ji, Nightcord de. ♪" },
+  { type: ActivityType.Playing, name: "dress-up with the task board ♡" },
+  { type: ActivityType.Watching, name: "over the crew ♪" },
+  { type: ActivityType.Playing, name: "with anything cute 🎀" },
+  { type: ActivityType.Watching, name: "for your next submission ♪" },
+];
+
+const PRESENCE_ROTATION_MS = 10 * 60 * 1000;
+
 export class EsadelBot {
   private logsChannelCache: { channelId: string; channel: SendableLogChannel } | null = null;
   private shuttingDown = false;
+  private presenceHandle: NodeJS.Timeout | null = null;
 
   constructor(
     private readonly client: Client,
@@ -112,12 +123,35 @@ export class EsadelBot {
 
     await this.enableDiscordLogForwarding();
 
+    this.startPresenceRotation();
+
     this.taskReminderDispatcherService.start();
 
     void this.commandDeployer.deploy(commands).catch((error) => {
       const message = error instanceof Error ? error.message : "Unknown deploy failure.";
       this.logger.error("Failed to deploy slash commands.", { message });
     });
+  }
+
+  /** Rotates Amia's presence/activity so her status feels alive. */
+  private startPresenceRotation(): void {
+    let index = 0;
+
+    const applyPresence = (): void => {
+      const activity = AMIA_ACTIVITIES[index % AMIA_ACTIVITIES.length];
+      index += 1;
+      if (!activity || !this.client.user) {
+        return;
+      }
+      this.client.user.setPresence({
+        status: "online",
+        activities: [{ name: activity.name, type: activity.type }],
+      });
+    };
+
+    applyPresence();
+    this.presenceHandle = setInterval(applyPresence, PRESENCE_ROTATION_MS);
+    this.presenceHandle.unref();
   }
 
   private async handleMemberJoin(member: GuildMember): Promise<void> {
@@ -140,6 +174,10 @@ export class EsadelBot {
       this.shuttingDown = true;
 
       this.logger.info("Shutting down.", { signal });
+      if (this.presenceHandle) {
+        clearInterval(this.presenceHandle);
+        this.presenceHandle = null;
+      }
       this.taskReminderDispatcherService.stop();
 
       try {
