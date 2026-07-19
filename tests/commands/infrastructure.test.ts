@@ -12,19 +12,23 @@ describe("Infrastructure & Command Registration", () => {
       const names = modules.map((command) => command.data.name).sort();
 
       expect(names).toEqual([
+        "amia",
         "appealstrike",
+        "ask",
         "assign",
         "bulkassign",
         "checkfree",
         "deboard",
         "endhiatus",
         "extend",
+        "fact",
         "hello",
         "hiatus",
         "history",
         "onboard",
         "ping",
         "profile",
+        "quote",
         "remove-task",
         "removestrike",
         "strike",

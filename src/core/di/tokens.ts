@@ -27,6 +27,7 @@ import type { AssignmentService } from "../../services/assignment-service";
 import type { BulkAssignmentService } from "../../services/bulk-assignment-service";
 import type { ConfigCacheService } from "../../services/config-cache-service";
 import type { GatekeeperService } from "../../services/gatekeeper-service";
+import type { KnowledgeService } from "../../services/knowledge-service";
 import type { StrikeService } from "../../services/strike-service";
 import type { TaskReminderBootstrapService } from "../../services/task-reminder-bootstrap-service";
 import type { TaskReminderDispatcherService } from "../../services/task-reminder-dispatcher-service";
@@ -63,6 +64,7 @@ export const TOKENS = {
   bulkAssignmentService: createToken<BulkAssignmentService>("bulkAssignmentService"),
   timezoneService: createToken<TimezoneTranslationService>("timezoneService"),
   gatekeeperService: createToken<GatekeeperService>("gatekeeperService"),
+  knowledgeService: createToken<KnowledgeService>("knowledgeService"),
   configCacheService: createToken<ConfigCacheService>("configCacheService"),
   strikeService: createToken<StrikeService>("strikeService"),
 

@@ -3,6 +3,7 @@ import { vi } from "vitest";
 import type { CommandExecutionContext } from "../../src/commands/contracts/command-execution-context";
 import type { AppConfig } from "../../src/config/env";
 import type { Logger } from "../../src/core/logger/logger";
+import { KnowledgeService } from "../../src/services/knowledge-service";
 
 export const createTestConfig = (): AppConfig => ({
   discord: {
@@ -226,6 +227,7 @@ export const createMockCommandContext = (
       handleVerificationTimeout: vi.fn(),
       buildVerificationUrl: vi.fn(),
     } as unknown as CommandExecutionContext["gatekeeperService"],
+    knowledgeService: new KnowledgeService(),
     ...overrides,
   };
 };

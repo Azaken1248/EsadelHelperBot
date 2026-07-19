@@ -1,4 +1,8 @@
 import type { AppConfig } from "../../config/env";
+import { AmiaCommand } from "./amia/amia.command";
+import { AskCommand } from "./amia/ask.command";
+import { FactCommand } from "./amia/fact.command";
+import { QuoteCommand } from "./amia/quote.command";
 import { AppealStrikeCommand } from "./crew/appealstrike.command";
 import { DeboardCommand } from "./crew/deboard.command";
 import { EndHiatusCommand } from "./crew/endhiatus.command";
@@ -50,5 +54,9 @@ export const buildCommandModules = (config: AppConfig): SlashCommand[] => {
     new StrikeCommand(),
     new RemoveStrikeCommand(),
     new AppealStrikeCommand(),
+    new AmiaCommand(),
+    new AskCommand(),
+    new FactCommand(),
+    new QuoteCommand(),
   ];
 };

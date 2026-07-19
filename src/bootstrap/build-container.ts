@@ -25,6 +25,7 @@ import { AssignmentService } from "../services/assignment-service";
 import { BulkAssignmentService } from "../services/bulk-assignment-service";
 import { ConfigCacheService } from "../services/config-cache-service";
 import { GatekeeperService } from "../services/gatekeeper-service";
+import { KnowledgeService } from "../services/knowledge-service";
 import { StrikeService } from "../services/strike-service";
 import { TaskReminderBootstrapService } from "../services/task-reminder-bootstrap-service";
 import { TaskReminderDispatcherService } from "../services/task-reminder-dispatcher-service";
@@ -139,6 +140,11 @@ export const buildContainer = (): ServiceContainer => {
   );
 
   container.registerSingleton(
+    TOKENS.knowledgeService,
+    () => new KnowledgeService(),
+  );
+
+  container.registerSingleton(
     TOKENS.gatekeeperService,
     (resolver) =>
       new GatekeeperService(
@@ -229,6 +235,7 @@ export const buildContainer = (): ServiceContainer => {
           configCacheService: resolver.resolve(TOKENS.configCacheService),
           timezoneService: resolver.resolve(TOKENS.timezoneService),
           gatekeeperService: resolver.resolve(TOKENS.gatekeeperService),
+          knowledgeService: resolver.resolve(TOKENS.knowledgeService),
         },
         resolver.resolve(TOKENS.submitApprovalHandler),
         resolver.resolve(TOKENS.strikeAppealHandler),

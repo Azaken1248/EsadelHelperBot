@@ -10,8 +10,8 @@ describe("createEsadelEmbed", () => {
     }).toJSON();
 
     expect(embed.color).toBe(ESADEL_PALETTE.lavender);
-    expect(embed.title).toBe("Project Esadel Helper");
-    expect(embed.footer?.text).toBe("Project Esadel Helper");
+    expect(embed.title).toBe("Amia");
+    expect(embed.footer?.text).toBe("Amia · Project Esadel");
     expect(embed.description).toContain("Just a little update~");
     expect(embed.description).toContain("Let me know if you need anything!");
   });

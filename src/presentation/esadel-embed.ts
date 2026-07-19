@@ -23,10 +23,10 @@ export interface EsadelPersonalityProfile {
   };
 }
 
-// ARCHITECTURE.md §7.2 — identity pending final bot naming.
+// ARCHITECTURE.md §7.2 — persona modeled on Akiyama Mizuki ("Amia").
 export const ESADEL_PERSONALITY_PROFILE: EsadelPersonalityProfile = {
-  identity: "Project Esadel Helper",
-  archetypeBlend: "Authentic Mizuki mannerisms from the PJSK database",
+  identity: "Amia",
+  archetypeBlend: "Akiyama Mizuki (25-ji, Nightcord de.) — playful-teasing warmth x fashion-forward support",
   coreTraits: [
     "playful-teasing",
     "fashion-conscious",
@@ -56,8 +56,8 @@ export interface EsadelEmbedOptions {
   voiceWrap?: boolean;
 }
 
-const DEFAULT_TITLE = "Project Esadel Helper";
-const DEFAULT_FOOTER = "Project Esadel Helper";
+const DEFAULT_TITLE = "Amia";
+const DEFAULT_FOOTER = "Amia · Project Esadel";
 
 // Tone-specific openers/closers (PERSONALITY_GUIDE.md §2.1).
 const TONE_OPENERS: Readonly<Record<EsadelTone, string>> = {
