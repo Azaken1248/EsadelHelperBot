@@ -30,6 +30,13 @@ describe("KnowledgeService", () => {
       expect(service.search("quarterly tax filing spreadsheet")).toEqual([]);
     });
 
+    it("handles paraphrases via synonym expansion (semantic recall)", () => {
+      // "boy"/"girl" never appear as keywords, but expand to gender/identity.
+      expect(service.answer("is Mizuki a boy or a girl?").best?.category).toBe("identity");
+      // "girlfriend" expands to relationship/ena.
+      expect(service.answer("does Mizuki have a girlfriend?").best?.category).toBe("relationships");
+    });
+
     it("returns related entries alongside the best match", () => {
       const { best, related } = service.answer("tell me about the voice actor and songs");
       expect(best).not.toBeNull();

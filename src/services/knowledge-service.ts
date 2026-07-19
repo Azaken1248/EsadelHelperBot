@@ -7,6 +7,7 @@ import {
   type KnowledgeCategory,
   type KnowledgeEntry,
 } from "../knowledge/mizuki-knowledge";
+import { TfIdfVectorIndex } from "../knowledge/vector-index";
 
 export interface CategorySummary {
   category: KnowledgeCategory;
@@ -19,72 +20,25 @@ export interface AnswerResult {
   related: KnowledgeEntry[];
 }
 
-const STOP_WORDS = new Set([
-  "the", "a", "an", "is", "are", "was", "were", "do", "does", "did", "of", "to",
-  "in", "on", "for", "and", "or", "what", "who", "whom", "whose", "why", "how",
-  "when", "where", "which", "you", "your", "me", "my", "i", "about", "tell",
-  "can", "please", "mizuki",
-]);
-
-const tokenize = (input: string): string[] =>
-  input
-    .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter((token) => token.length > 0);
-
 /**
- * Amia's knowledge base (the Mizuki lore). Pure and dependency-free — reads the
- * static entries in ../knowledge/mizuki-knowledge and scores relevance for the
- * /ask, /amia, /fact, and /quote commands.
+ * Amia's knowledge base (the Mizuki lore). Pure and dependency-free. Retrieval
+ * runs over an in-memory TF-IDF vector index (cosine similarity + synonym
+ * expansion) built once from the static entries, powering the /ask, /amia,
+ * /fact, and /quote commands.
  */
 export class KnowledgeService {
   private readonly entries: readonly KnowledgeEntry[] = KNOWLEDGE_ENTRIES;
 
-  private scoreEntry(entry: KnowledgeEntry, tokens: string[]): number {
-    if (tokens.length === 0) {
-      return 0;
-    }
+  private readonly index = new TfIdfVectorIndex<KnowledgeEntry>(this.entries, (entry) => [
+    { text: entry.title, weight: 3 },
+    { text: entry.keywords.join(" "), weight: 4 },
+    { text: entry.summary, weight: 2 },
+    { text: entry.content, weight: 1 },
+  ]);
 
-    const keywordSet = new Set(entry.keywords.map((keyword) => keyword.toLowerCase()));
-    const titleTokens = new Set(tokenize(entry.title));
-    const haystack = `${entry.title} ${entry.summary} ${entry.content}`.toLowerCase();
-
-    let score = 0;
-    for (const token of tokens) {
-      if (keywordSet.has(token)) {
-        score += 5;
-      }
-      // Multi-word keywords (e.g. "empty sekai") matched as substrings.
-      for (const keyword of keywordSet) {
-        if (keyword.includes(" ") && keyword.includes(token)) {
-          score += 2;
-          break;
-        }
-      }
-      if (titleTokens.has(token)) {
-        score += 3;
-      }
-      if (haystack.includes(token)) {
-        score += 1;
-      }
-    }
-
-    return score;
-  }
-
-  /** Ranked full-text-ish search across the knowledge base. */
+  /** Semantic-ish ranked search across the knowledge base. */
   search(query: string, limit = 5): KnowledgeEntry[] {
-    const tokens = tokenize(query).filter((token) => !STOP_WORDS.has(token));
-    if (tokens.length === 0) {
-      return [];
-    }
-
-    return this.entries
-      .map((entry) => ({ entry, score: this.scoreEntry(entry, tokens) }))
-      .filter((scored) => scored.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, limit)
-      .map((scored) => scored.entry);
+    return this.index.search(query, limit).map((result) => result.item);
   }
 
   /** Answer a natural-language question with the best entry plus related ones. */
