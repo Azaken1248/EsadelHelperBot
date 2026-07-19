@@ -146,7 +146,7 @@ export class StrikeCommand implements SlashCommand {
       embeds: [
         createEsadelEmbed({
           title: "Esadel Strike Board — Strike Issued",
-          description: `> A strike has been recorded for <@${targetUser.id}> by <@${interaction.user.id}>.`,
+          description: `> Oh... a strike's been recorded for <@${targetUser.id}> by <@${interaction.user.id}>. Don't look so down though — let's just pay a little extra attention next time, okay? ♡`,
           tone: "rose",
           fields,
         }),

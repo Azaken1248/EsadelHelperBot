@@ -43,7 +43,7 @@ export class ExtensionCommand implements SlashCommand {
         embeds: [
           createEsadelEmbed({
             title: "Esadel Extension Board",
-            description: `> I couldn't understand the date \`${deadlineInput}\`, or it's in the past. Try something like \`"in 3 days"\`!`,
+            description: `> Hmm~ I couldn't understand the date \`${deadlineInput}\`, or it's already in the past. Try something like \`"in 3 days"\`, okay? ♪`,
             tone: "rose",
           }),
         ],
@@ -63,7 +63,7 @@ export class ExtensionCommand implements SlashCommand {
         embeds: [
           createEsadelEmbed({
             title: "Esadel Extension Board",
-            description: `> **Extension Denied:** ${result.reason ?? "Unknown reason."}`,
+            description: `> Ah... **Extension Denied** ~ ${result.reason ?? "Unknown reason."} Let's see what we can do with what we've got, okay?`,
             tone: "rose",
           }),
         ],
@@ -78,7 +78,7 @@ export class ExtensionCommand implements SlashCommand {
       embeds: [
         createEsadelEmbed({
           title: "Esadel Extension Board",
-          description: `> Extension approved! Take the extra time to style it perfectly~ ♪`,
+          description: `> Extension approved~! Take the extra time to make it perfect — I know it'll turn out super cute! ♡`,
           tone: "sakura",
           fields: [
             {

@@ -85,7 +85,7 @@ export class AssignCommand implements SlashCommand {
         embeds: [
           createEsadelEmbed({
             title: "Esadel Assignment Board",
-            description: `> I couldn't understand the deadline \`${deadlineInput}\`, or it's in the past! Try something like \`"tomorrow"\` or \`"in 3 days"\`.`,
+            description: `> Mmm, I couldn't understand the deadline \`${deadlineInput}\`, or it's already in the past~ Give me something clear and cute like \`"tomorrow"\` or \`"in 3 days"\`, okay? ♪`,
             tone: "rose",
           }),
         ],
@@ -111,7 +111,7 @@ export class AssignCommand implements SlashCommand {
         embeds: [
           createEsadelEmbed({
             title: "Esadel Assignment Board",
-            description: `> Task successfully assigned to <@${member.id}>!`,
+            description: `> Ooh, a brand-new task to style~! I've handed it to <@${member.id}>. Let's make it look amazing, hehe~ ♡`,
             tone: "sakura",
             fields: [
               { name: "◈ Task", value: `> **${assignment.taskName}**`, inline: true },
@@ -128,7 +128,7 @@ export class AssignCommand implements SlashCommand {
         embeds: [
           createEsadelEmbed({
             title: "Esadel Assignment Board",
-            description: `> Failed to assign task: ${errorMessage}`,
+            description: `> Aww, I couldn't assign that one~ ${errorMessage}`,
             tone: "rose",
           }),
         ],

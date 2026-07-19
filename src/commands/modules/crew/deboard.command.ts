@@ -54,8 +54,8 @@ export class DeboardCommand implements SlashCommand {
     const result = await context.userService.deboard(targetUser.id, reason);
 
     const messageByStatus: Record<DeboardStatus, string> = {
-      deboarded: `<@${targetUser.id}> has been marked as deboarded in the crew registry.`,
-      alreadyDeboarded: `<@${targetUser.id}> is already marked as deboarded.`,
+      deboarded: `Saying goodbye is never easy... <@${targetUser.id}> has been deboarded. Thank you for everything — take care of yourself, okay? ♡`,
+      alreadyDeboarded: `<@${targetUser.id}> is already marked as deboarded~`,
       notFound: `No crew profile exists for <@${targetUser.id}> yet.`,
     };
 

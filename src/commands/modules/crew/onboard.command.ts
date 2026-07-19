@@ -33,9 +33,9 @@ export class OnboardCommand implements SlashCommand {
     const joinedUnix = Math.floor(result.user.joinedAt.getTime() / 1000);
 
     const messages: Record<OnboardStatus, string> = {
-      created: `<@${targetUser.id}> is now active in the crew registry.`,
-      reactivated: `<@${targetUser.id}> has been reactivated in the crew registry.`,
-      alreadyActive: `<@${targetUser.id}> is already active in the crew registry.`,
+      created: `Hi hi~! <@${targetUser.id}> is officially part of the crew now! Let's make some amazing work together, okay? ♪`,
+      reactivated: `Welcome back~! <@${targetUser.id}> is active in the crew registry again. So glad to have you! ♡`,
+      alreadyActive: `Oh, look~ <@${targetUser.id}> is already part of the team! No need to register them twice, hehe~`,
     };
 
     const toneByStatus: Record<OnboardStatus, EsadelTone> = {

@@ -66,7 +66,7 @@ export class RemoveStrikeCommand implements SlashCommand {
       embeds: [
         createEsadelEmbed({
           title: "Esadel Strike Board — Strike Removed ✅",
-          description: `> Strike \`${strikeId}\` has been removed by <@${interaction.user.id}>.`,
+          description: `> Yay~! Strike \`${strikeId}\` was lifted by <@${interaction.user.id}>. Fresh start — let's keep that record looking cute! ♪`,
           tone: "sakura",
           fields: [
             {

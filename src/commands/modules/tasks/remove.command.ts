@@ -53,7 +53,7 @@ export class RemoveTaskCommand implements SlashCommand {
       embeds: [
         createEsadelEmbed({
           title: "Esadel Assignment Board",
-          description: `> Task **${result.assignment.taskName}** has been removed entirely from the roster.`,
+          description: `> Poof~! Task **${result.assignment.taskName}** has been removed entirely from the roster. One less thing on the plate — go take a breather! ♪`,
           tone: "lavender",
         }),
       ],

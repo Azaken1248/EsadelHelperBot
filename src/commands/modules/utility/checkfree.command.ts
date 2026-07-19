@@ -31,7 +31,7 @@ export class CheckFreeCommand implements SlashCommand {
         embeds: [
           createEsadelEmbed({
             title: "Esadel Availability Board",
-            description: "> Everyone has tasks right now! The whole crew is in full momentum — love to see it! ♪",
+            description: "> Everyone has tasks right now~! The whole crew is in full styling mode — love to see it! ♪",
             tone: "sakura",
           }),
         ],

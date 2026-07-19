@@ -117,7 +117,7 @@ export class AppealStrikeCommand implements SlashCommand {
       embeds: [
         createEsadelEmbed({
           title: "Esadel Appeal Desk — Appeal Filed 📋",
-          description: `> <@${interaction.user.id}> is appealing a strike. Owners and mods — please review!`,
+          description: `> <@${interaction.user.id}> is appealing a strike~ Owners and mods, could you take a look right away? Hehe~ ♪`,
           tone: "lavender",
           voiceWrap: false,
           fields: [

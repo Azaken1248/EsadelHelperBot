@@ -49,7 +49,7 @@ export class TasksCommand implements SlashCommand {
           embeds: [
             createEsadelEmbed({
               title: "Esadel Assignment Board",
-              description: "> 🛑 Only admins and managers can view other crew members' task boards!",
+              description: "> Ah, hold on~ 🛑 Only admins and managers can peek at other crew members' task boards! We wouldn't want to mess up anyone's styling, right? ♡",
               tone: "twilight",
             }),
           ],
@@ -78,8 +78,8 @@ export class TasksCommand implements SlashCommand {
 
     if (tasks.length === 0) {
       const msg = isSelf
-        ? "> You have no pending tasks right now! Great job keeping up the momentum! ✨"
-        : `> <@${queryUser.id}> has no pending tasks right now!`;
+        ? "> You have no pending tasks right now~! All caught up — go treat yourself, hehe~ ✨"
+        : `> <@${queryUser.id}> has no pending tasks right now~ all clear! ♪`;
 
       await interaction.reply({
         embeds: [
@@ -109,7 +109,7 @@ export class TasksCommand implements SlashCommand {
       embeds: [
         createEsadelEmbed({
           title: "Esadel Assignment Board",
-          description: `> Here are the pending tasks for <@${queryUser.id}>. Keep moving forward! ♪`,
+          description: `> Here are the pending tasks for <@${queryUser.id}>~ Let's tackle them and go do something fun after, okay? ♪`,
           tone: "lavender",
           fields,
         }),

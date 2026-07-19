@@ -61,7 +61,7 @@ export class TransferTaskCommand implements SlashCommand {
       embeds: [
         createEsadelEmbed({
           title: "Esadel Assignment Board",
-          description: `> Task **${result.assignment.taskName}** has been successfully transferred.`,
+          description: `> All done~! Task **${result.assignment.taskName}** has been successfully transferred. They'll take it from here, so you're free to go, hehe~ ♪`,
           tone: "lavender",
           fields: [
             {

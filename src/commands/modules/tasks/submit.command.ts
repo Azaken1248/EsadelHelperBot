@@ -56,7 +56,7 @@ export class SubmitCommand implements SlashCommand {
         embeds: [
           createEsadelEmbed({
             title: "Esadel Submission Desk",
-            description: `> **Submission Failed:** ${result.reason ?? "Unknown reason."}`,
+            description: `> Aw, **Submission Failed** ~ ${result.reason ?? "Unknown reason."} Let's sort it out, okay? ♡`,
             tone: "rose",
           }),
         ],
@@ -72,7 +72,7 @@ export class SubmitCommand implements SlashCommand {
 
     const approvalEmbed = createEsadelEmbed({
       title: "Esadel Submission Desk — Awaiting Review",
-      description: `> <@${assignment.discordUserId}> has submitted a task for approval!`,
+      description: `> Ta-da~! <@${assignment.discordUserId}> just handed in a task for review! Owners, mods — come take a peek, okay? ♪`,
       tone: "lavender",
       voiceWrap: false,
       fields: [
@@ -183,7 +183,7 @@ export class SubmitCommand implements SlashCommand {
       embeds: [
         createEsadelEmbed({
           title: "Esadel Submission Desk",
-          description: `> Your task **${assignment.taskName}** has been submitted for review! An owner or mod will approve or deny it soon. ♪`,
+          description: `> Yay, your task **${assignment.taskName}** is submitted for review! I'll tell the admins right away — good job finishing it, hehe~ ♪`,
           tone: "sakura",
           fields: [
             {

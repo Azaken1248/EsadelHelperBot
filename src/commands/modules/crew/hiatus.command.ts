@@ -29,10 +29,10 @@ export class HiatusCommand implements SlashCommand {
     const result = await context.userService.startHiatus(interaction.user.id, reason);
 
     const messages: Record<HiatusStatus, string> = {
-      started: `> <@${interaction.user.id}> is now on hiatus. All pending deadlines are frozen until you return. Take care! 🎀`,
-      alreadyOnHiatus: `> <@${interaction.user.id}> is already on hiatus. Use \`/endhiatus\` when you're ready to come back!`,
-      notFound: `> No crew profile found for <@${interaction.user.id}>. You need to be onboarded first.`,
-      deboarded: `> <@${interaction.user.id}> has been deboarded and cannot go on hiatus.`,
+      started: `> Got it~! <@${interaction.user.id}> is on hiatus now. Take a good rest and go do something fun — I'll keep your deadlines completely frozen so you don't have to worry at all! ♪`,
+      alreadyOnHiatus: `> <@${interaction.user.id}> is already on hiatus~ Use \`/endhiatus\` whenever you're ready to come back, okay? ♡`,
+      notFound: `> No crew profile found for <@${interaction.user.id}>. You need to be onboarded first~`,
+      deboarded: `> Aw, <@${interaction.user.id}> has been deboarded and can't go on hiatus.`,
       ended: "> Unexpected state.",
       notOnHiatus: "> Unexpected state.",
     };
