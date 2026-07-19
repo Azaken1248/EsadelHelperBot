@@ -32,9 +32,9 @@ export class AskCommand implements SlashCommand {
           createEsadelEmbed({
             title: "Amia",
             description:
-              "Hmm~ that's a little outside what I know! I'm more of a lore girl, hehe~ " +
-              "I can tell you about *me*, 25-ji Nightcord, and the story — like `who is Ena?` or " +
-              "`what does Amia mean?`. Browse everything with `/amia`, okay? ♡",
+              "Hmm~ that's a little outside what I know! I mostly keep to myself, 25-ji Nightcord, " +
+              "and the story — like `who is Ena?` or `what does Amia mean?`. " +
+              "Browse everything with `/amia`, okay? ♡",
             tone: "lavender",
             voiceWrap: false,
           }),
