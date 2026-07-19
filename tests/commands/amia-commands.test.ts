@@ -29,7 +29,7 @@ describe("amia commands", () => {
     await command.execute(interaction as never, createMockCommandContext());
 
     const embed = interaction.reply.mock.calls[0][0].embeds[0].toJSON();
-    expect(embed.description).toContain("don't think I have anything on that");
+    expect(embed.description).toContain("outside what I know");
   });
 
   it("AmiaCommand shows an overview with category fields when no topic is given", async () => {

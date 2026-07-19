@@ -82,7 +82,7 @@ export class AmiaCommand implements SlashCommand {
           description:
             `Hi hi~! I'm **Amia** — that's my handle over in 25-ji, Nightcord de.! ♪\n\n` +
             `My whole thing? *"${AMIA_TAGLINE}"* Hehe~\n\n` +
-            "Ask me anything with `/ask`, pull up a topic with `/amia topic:`, or try `/fact` and `/quote`!",
+            "Ask me about myself & the lore with `/ask`, pull up a topic with `/amia topic:`, or try `/fact` and `/quote`!",
           tone: "sakura",
           voiceWrap: false,
           fields,

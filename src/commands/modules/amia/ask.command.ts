@@ -11,7 +11,7 @@ import type { SlashCommand } from "../../contracts/slash-command";
 export class AskCommand implements SlashCommand {
   readonly data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
     .setName("ask")
-    .setDescription("Ask Amia about herself, 25-ji Nightcord, or the lore.")
+    .setDescription("Ask Amia about herself, 25-ji Nightcord, or the lore (not a general chatbot~).")
     .addStringOption((option) =>
       option
         .setName("question")
@@ -32,7 +32,9 @@ export class AskCommand implements SlashCommand {
           createEsadelEmbed({
             title: "Amia",
             description:
-              "Hmm~ I don't think I have anything on that yet! Try `/amia` to see what I *do* know, okay? Hehe~ ♡",
+              "Hmm~ that's a little outside what I know! I'm more of a lore girl, hehe~ " +
+              "I can tell you about *me*, 25-ji Nightcord, and the story — like `who is Ena?` or " +
+              "`what does Amia mean?`. Browse everything with `/amia`, okay? ♡",
             tone: "lavender",
             voiceWrap: false,
           }),
