@@ -35,6 +35,9 @@ export interface AppConfig {
     port: number;
     jwtSecret: string | null;
   };
+  logging: {
+    streamJson: boolean;
+  };
   extensionRules: {
     maxStandardExtensions: number | null;
     blockTimeLimitedAutoExtension: boolean;
@@ -194,6 +197,9 @@ export const loadAppConfig = (): AppConfig => {
     web: {
       port: readPositiveIntegerWithDefault("WEBSITE_PORT", 3000),
       jwtSecret: readOptionalEnv("ANALYTICS_JWT_SECRET"),
+    },
+    logging: {
+      streamJson: readBooleanWithDefault("LOG_STREAM_JSON", false),
     },
     extensionRules: {
       maxStandardExtensions: readOptionalNonNegativeInteger("MAX_STANDARD_EXTENSIONS"),

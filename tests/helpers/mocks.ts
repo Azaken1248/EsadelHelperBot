@@ -36,6 +36,9 @@ export const createTestConfig = (): AppConfig => ({
     port: 3000,
     jwtSecret: "jwt-secret",
   },
+  logging: {
+    streamJson: false,
+  },
   extensionRules: {
     maxStandardExtensions: 2,
     blockTimeLimitedAutoExtension: true,

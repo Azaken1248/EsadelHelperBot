@@ -3,6 +3,7 @@ import type { Client } from "discord.js";
 import type { BotEventMap } from "../../app/bot-events";
 import type { AppConfig } from "../../config/env";
 import type { EventBus } from "../events/event-bus";
+import type { LogBroadcaster } from "../logger/log-broadcaster";
 import type { Logger } from "../logger/logger";
 import type { ServiceToken } from "./container";
 
@@ -41,6 +42,7 @@ const createToken = <T>(description: string): ServiceToken<T> => {
 
 export const TOKENS = {
   logger: createToken<Logger>("logger"),
+  logBroadcaster: createToken<LogBroadcaster>("logBroadcaster"),
   eventBus: createToken<EventBus<BotEventMap>>("eventBus"),
   discordClient: createToken<Client>("discordClient"),
 

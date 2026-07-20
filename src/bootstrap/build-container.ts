@@ -13,6 +13,7 @@ import { CommandRegistry } from "../commands/registry/command-registry";
 import { loadAppConfig } from "../config/env";
 import { ServiceContainer } from "../core/di/container";
 import { TOKENS } from "../core/di/tokens";
+import { LogBroadcaster } from "../core/logger/log-broadcaster";
 import { createLogger } from "../core/logger/logger";
 import { CommandDeployer } from "../discord/command-deployer";
 import { MongooseAssignmentRepository } from "../repositories/mongoose/mongoose-assignment-repository";
@@ -38,6 +39,7 @@ export const buildContainer = (): ServiceContainer => {
 
   container.registerSingleton(TOKENS.config, () => loadAppConfig());
   container.registerSingleton(TOKENS.logger, () => createLogger("EsadelBot"));
+  container.registerSingleton(TOKENS.logBroadcaster, () => new LogBroadcaster());
   container.registerSingleton(TOKENS.eventBus, () => createEventBus<BotEventMap>());
 
   container.registerSingleton(
