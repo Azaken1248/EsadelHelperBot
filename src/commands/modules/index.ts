@@ -23,6 +23,7 @@ import { HelloCommand } from "./utility/hello.command";
 import { HistoryCommand } from "./utility/history.command";
 import { PingCommand } from "./utility/ping.command";
 import { ProfileCommand } from "./utility/profile.command";
+import { TimeCommand } from "./utility/time.command";
 import { TimezoneCommand } from "./utility/timezone.command";
 import { UptimeCommand } from "./utility/uptime.command";
 
@@ -48,6 +49,7 @@ export const buildCommandModules = (config: AppConfig): SlashCommand[] => {
     new HistoryCommand(adminRoleIds, config.roles.specialized),
     new ProfileCommand(),
     new TimezoneCommand(),
+    new TimeCommand(),
     new PingCommand(),
     new UptimeCommand(),
     new HelloCommand(),

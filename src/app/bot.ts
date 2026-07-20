@@ -18,7 +18,6 @@ import type { ConfigCacheService } from "../services/config-cache-service";
 import type { GatekeeperService } from "../services/gatekeeper-service";
 import type { TaskReminderBootstrapService } from "../services/task-reminder-bootstrap-service";
 import type { TaskReminderDispatcherService } from "../services/task-reminder-dispatcher-service";
-import { createEsadelEmbed, type EsadelTone } from "../presentation/esadel-embed";
 import type { BotEventMap } from "./bot-events";
 
 type SendableLogChannel = {
@@ -270,64 +269,30 @@ export class EsadelBot {
     channel: SendableLogChannel,
     entry: LogEntry,
   ): Promise<void> {
-    const toneByLevel: Record<LogLevel, EsadelTone> = {
-      INFO: "lavender",
-      WARN: "rose",
-      ERROR: "twilight",
+    const emojiByLevel: Record<LogLevel, string> = {
+      INFO: "🌸",
+      WARN: "⚠️",
+      ERROR: "🚨",
     };
 
-    const titleByLevel: Record<LogLevel, string> = {
-      INFO: "Esadel System Status 🌸",
-      WARN: "Esadel System Notice ⚠️",
-      ERROR: "Esadel System Alert 🚨",
-    };
-
-    const tone = toneByLevel[entry.level];
-    const title = titleByLevel[entry.level];
     const unixTime = Math.floor(new Date(entry.timestamp).getTime() / 1000);
-
-    const fields = [
-      {
-        name: "◈ Scope",
-        value: `\`${entry.scope}\``,
-        inline: true,
-      },
-      {
-        name: "◈ Timestamp",
-        value: `<t:${unixTime}:T>`,
-        inline: true,
-      },
-    ];
+    let line = `${emojiByLevel[entry.level]} \`${entry.level}\` <t:${unixTime}:T> · \`${entry.scope}\` — ${entry.message}`;
 
     if (entry.metadata && Object.keys(entry.metadata).length > 0) {
-      const metadataText = this.safeStringify(entry.metadata);
-      const safeMetadata = metadataText.length > 1000
-        ? `${metadataText.slice(0, 1000)}\n  ...[truncated]`
-        : metadataText;
-
-      fields.push({
-        name: "◈ Context Metadata",
-        value: `\`\`\`json\n${safeMetadata}\n\`\`\``,
-        inline: false,
-      });
+      const metadataText = this.safeStringify(entry.metadata).replace(/\s+/g, " ").trim();
+      const compact = metadataText.length > 300 ? `${metadataText.slice(0, 300)}…` : metadataText;
+      line += ` \`${compact}\``;
     }
 
-    const embed = createEsadelEmbed({
-      title,
-      description: `> **${entry.message}**`,
-      tone,
-      fields,
-      voiceWrap: false,
-    });
-
     try {
-      await channel.send({ embeds: [embed] });
+      // A single compact line rather than a heavy embed — logs stay skimmable.
+      await channel.send({ content: line.slice(0, 2000) });
     } catch (error) {
       // Never route this failure back through this.logger — the Discord sink is
       // registered on it, so doing so would re-enter sendLogEntryToChannel and
       // loop indefinitely while the channel stays unavailable. Log to console.
       console.error(
-        "Failed to forward Esadel log embed to Discord.",
+        "Failed to forward Esadel log line to Discord.",
         error instanceof Error ? error.message : "Unknown error",
       );
     }

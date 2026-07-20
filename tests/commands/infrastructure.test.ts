@@ -34,6 +34,7 @@ describe("Infrastructure & Command Registration", () => {
         "strike",
         "submit",
         "tasks",
+        "time",
         "timezone",
         "transfer-task",
         "uptime",
