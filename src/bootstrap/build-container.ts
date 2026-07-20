@@ -1,5 +1,6 @@
 import { Client, GatewayIntentBits } from "discord.js";
 
+import { ApiServer } from "../api/api-server";
 import { EsadelBot } from "../app/bot";
 import type { BotEventMap } from "../app/bot-events";
 import { createEventBus } from "../core/events/event-bus";
@@ -247,6 +248,19 @@ export const buildContainer = (): ServiceContainer => {
   );
 
   container.registerSingleton(
+    TOKENS.apiServer,
+    (resolver) =>
+      new ApiServer(
+        resolver.resolve(TOKENS.config),
+        resolver.resolve(TOKENS.logger),
+        resolver.resolve(TOKENS.logBroadcaster),
+        resolver.resolve(TOKENS.guildConfigRepository),
+        resolver.resolve(TOKENS.configCacheService),
+        resolver.resolve(TOKENS.gatekeeperService),
+      ),
+  );
+
+  container.registerSingleton(
     TOKENS.bot,
     (resolver) =>
       new EsadelBot(
@@ -261,6 +275,7 @@ export const buildContainer = (): ServiceContainer => {
         resolver.resolve(TOKENS.taskReminderDispatcherService),
         resolver.resolve(TOKENS.gatekeeperService),
         resolver.resolve(TOKENS.eventBus),
+        resolver.resolve(TOKENS.apiServer),
       ),
   );
 

@@ -1,5 +1,6 @@
 import type { Client } from "discord.js";
 
+import type { ApiServer } from "../../api/api-server";
 import type { BotEventMap } from "../../app/bot-events";
 import type { AppConfig } from "../../config/env";
 import type { EventBus } from "../events/event-bus";
@@ -82,5 +83,6 @@ export const TOKENS = {
   commandDeployer: createToken<CommandDeployer>("commandDeployer"),
 
   // App / Bootstrap
+  apiServer: createToken<ApiServer>("apiServer"),
   bot: createToken<EsadelBot>("bot"),
 } as const;

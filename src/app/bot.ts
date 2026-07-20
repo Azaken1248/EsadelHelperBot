@@ -1,5 +1,6 @@
 import { ActivityType, Client, Events, type GuildMember } from "discord.js";
 
+import type { ApiServer } from "../api/api-server";
 import type { SlashCommand } from "../commands/contracts/slash-command";
 import type { InteractionCreateHandler } from "../commands/handlers/interaction-create-handler";
 import type { CommandLoader } from "../commands/loader/command-loader";
@@ -51,6 +52,7 @@ export class EsadelBot {
     private readonly taskReminderDispatcherService: TaskReminderDispatcherService,
     private readonly gatekeeperService: GatekeeperService,
     private readonly eventBus: EventBus<BotEventMap>,
+    private readonly apiServer: ApiServer,
   ) {}
 
   async start(): Promise<Result<void, Error>> {
@@ -71,6 +73,13 @@ export class EsadelBot {
       const commands = this.commandLoader.load();
       this.wireEventBus(commands);
       this.registerShutdownHandlers();
+
+      try {
+        await this.apiServer.start();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Unknown API server failure.";
+        this.logger.error("HTTP API failed to start. Continuing without it.", { message });
+      }
 
       await this.client.login(this.config.discord.token);
       return ok(undefined);
@@ -178,6 +187,12 @@ export class EsadelBot {
         this.presenceHandle = null;
       }
       this.taskReminderDispatcherService.stop();
+
+      try {
+        await this.apiServer.stop();
+      } catch {
+        // best-effort — we're exiting anyway.
+      }
 
       try {
         await disconnectFromDatabase(this.logger);

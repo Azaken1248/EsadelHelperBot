@@ -10,7 +10,17 @@ export interface CreateGuildConfigInput {
   blockTimeLimitedAutoExtension: boolean;
 }
 
+export interface UpdateGuildConfigInput {
+  ownerRoleIds?: string[];
+  managerRoleIds?: string[];
+  baseCrewRoleId?: string;
+  specializedRoles?: Record<string, string>;
+  maxStandardExtensions?: number | null;
+  blockTimeLimitedAutoExtension?: boolean;
+}
+
 export interface GuildConfigRepository {
   findByGuildId(guildId: string): Promise<IGuildConfig | null>;
   create(input: CreateGuildConfigInput): Promise<IGuildConfig>;
+  update(guildId: string, patch: UpdateGuildConfigInput): Promise<IGuildConfig | null>;
 }
