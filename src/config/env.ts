@@ -38,6 +38,12 @@ export interface AppConfig {
   logging: {
     streamJson: boolean;
   };
+  llm: {
+    enabled: boolean;
+    baseUrl: string;
+    model: string;
+    timeoutMs: number;
+  };
   extensionRules: {
     maxStandardExtensions: number | null;
     blockTimeLimitedAutoExtension: boolean;
@@ -200,6 +206,12 @@ export const loadAppConfig = (): AppConfig => {
     },
     logging: {
       streamJson: readBooleanWithDefault("LOG_STREAM_JSON", false),
+    },
+    llm: {
+      enabled: readBooleanWithDefault("LLM_ENABLED", false),
+      baseUrl: readWithDefault("OLLAMA_BASE_URL", "http://localhost:11434"),
+      model: readWithDefault("LLM_MODEL", "llama3.2:3b"),
+      timeoutMs: readPositiveIntegerWithDefault("LLM_TIMEOUT_MS", 20000),
     },
     extensionRules: {
       maxStandardExtensions: readOptionalNonNegativeInteger("MAX_STANDARD_EXTENSIONS"),

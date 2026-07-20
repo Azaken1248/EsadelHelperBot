@@ -24,10 +24,14 @@ export class AskCommand implements SlashCommand {
     context: CommandExecutionContext,
   ): Promise<void> {
     const question = interaction.options.getString("question", true);
-    const { best, related } = context.knowledgeService.answer(question);
 
-    if (!best) {
-      await interaction.reply({
+    // A local LLM answer can take a few seconds — ack first, then edit.
+    await interaction.deferReply();
+
+    const answer = await context.ragService.ask(question);
+
+    if (!answer) {
+      await interaction.editReply({
         embeds: [
           createEsadelEmbed({
             title: "Amia",
@@ -44,21 +48,24 @@ export class AskCommand implements SlashCommand {
     }
 
     const fields =
-      related.length > 0
+      answer.sources.length > 0
         ? [
             {
-              name: "◈ See also",
-              value: related.map((entry) => `\`${entry.title}\``).join(" · "),
+              name: "◈ Sources",
+              value: answer.sources
+                .slice(0, 4)
+                .map((entry) => `\`${entry.title}\``)
+                .join(" · "),
               inline: false,
             },
           ]
         : [];
 
-    await interaction.reply({
+    await interaction.editReply({
       embeds: [
         createEsadelEmbed({
-          title: `Amia — ${best.title}`,
-          description: `> Ooh, good question~! ♪\n\n${best.content}`,
+          title: "Amia",
+          description: answer.text,
           tone: "sakura",
           voiceWrap: false,
           fields,

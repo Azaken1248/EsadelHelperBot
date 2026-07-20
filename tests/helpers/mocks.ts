@@ -3,7 +3,9 @@ import { vi } from "vitest";
 import type { CommandExecutionContext } from "../../src/commands/contracts/command-execution-context";
 import type { AppConfig } from "../../src/config/env";
 import type { Logger } from "../../src/core/logger/logger";
+import { OllamaLlmClient } from "../../src/llm/llm-client";
 import { KnowledgeService } from "../../src/services/knowledge-service";
+import { RagService } from "../../src/services/rag-service";
 
 export const createTestConfig = (): AppConfig => ({
   discord: {
@@ -38,6 +40,12 @@ export const createTestConfig = (): AppConfig => ({
   },
   logging: {
     streamJson: false,
+  },
+  llm: {
+    enabled: false,
+    baseUrl: "http://localhost:11434",
+    model: "llama3.2:3b",
+    timeoutMs: 20000,
   },
   extensionRules: {
     maxStandardExtensions: 2,
@@ -164,6 +172,8 @@ export const createMockInteraction = (input: MockInteractionInput = {}) => {
     inGuild: vi.fn(() => input.inGuild !== false),
     reply: vi.fn().mockResolvedValue(undefined),
     followUp: vi.fn().mockResolvedValue(undefined),
+    deferReply: vi.fn().mockResolvedValue(undefined),
+    editReply: vi.fn().mockResolvedValue(undefined),
   };
 
   return interaction;
@@ -174,6 +184,7 @@ export const createMockCommandContext = (
 ): CommandExecutionContext => {
   const config = createTestConfig();
   const logger = createMockLogger();
+  const knowledgeService = new KnowledgeService();
 
   return {
     config,
@@ -230,7 +241,13 @@ export const createMockCommandContext = (
       handleVerificationTimeout: vi.fn(),
       buildVerificationUrl: vi.fn(),
     } as unknown as CommandExecutionContext["gatekeeperService"],
-    knowledgeService: new KnowledgeService(),
+    knowledgeService,
+    // Real RAG service with the LLM disabled → behaves as plain retrieval in tests.
+    ragService: new RagService(
+      knowledgeService,
+      new OllamaLlmClient(config.llm, logger),
+      logger,
+    ),
     ...overrides,
   };
 };

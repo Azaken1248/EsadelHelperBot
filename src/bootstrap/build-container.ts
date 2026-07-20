@@ -26,8 +26,10 @@ import { MongooseVerificationRepository } from "../repositories/mongoose/mongoos
 import { AssignmentService } from "../services/assignment-service";
 import { BulkAssignmentService } from "../services/bulk-assignment-service";
 import { ConfigCacheService } from "../services/config-cache-service";
+import { OllamaLlmClient } from "../llm/llm-client";
 import { GatekeeperService } from "../services/gatekeeper-service";
 import { KnowledgeService } from "../services/knowledge-service";
+import { RagService } from "../services/rag-service";
 import { StrikeService } from "../services/strike-service";
 import { TaskReminderBootstrapService } from "../services/task-reminder-bootstrap-service";
 import { TaskReminderDispatcherService } from "../services/task-reminder-dispatcher-service";
@@ -148,6 +150,25 @@ export const buildContainer = (): ServiceContainer => {
   );
 
   container.registerSingleton(
+    TOKENS.llmClient,
+    (resolver) =>
+      new OllamaLlmClient(
+        resolver.resolve(TOKENS.config).llm,
+        resolver.resolve(TOKENS.logger),
+      ),
+  );
+
+  container.registerSingleton(
+    TOKENS.ragService,
+    (resolver) =>
+      new RagService(
+        resolver.resolve(TOKENS.knowledgeService),
+        resolver.resolve(TOKENS.llmClient),
+        resolver.resolve(TOKENS.logger),
+      ),
+  );
+
+  container.registerSingleton(
     TOKENS.gatekeeperService,
     (resolver) =>
       new GatekeeperService(
@@ -239,6 +260,7 @@ export const buildContainer = (): ServiceContainer => {
           timezoneService: resolver.resolve(TOKENS.timezoneService),
           gatekeeperService: resolver.resolve(TOKENS.gatekeeperService),
           knowledgeService: resolver.resolve(TOKENS.knowledgeService),
+          ragService: resolver.resolve(TOKENS.ragService),
         },
         resolver.resolve(TOKENS.submitApprovalHandler),
         resolver.resolve(TOKENS.strikeAppealHandler),

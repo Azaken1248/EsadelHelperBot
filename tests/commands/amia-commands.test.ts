@@ -15,9 +15,11 @@ describe("amia commands", () => {
 
     await command.execute(interaction as never, createMockCommandContext());
 
-    const embed = interaction.reply.mock.calls[0][0].embeds[0].toJSON();
-    expect(embed.title).toContain("Amia —");
+    expect(interaction.deferReply).toHaveBeenCalledTimes(1);
+    const embed = interaction.editReply.mock.calls[0][0].embeds[0].toJSON();
+    expect(embed.title).toContain("Amia");
     expect(embed.description.toLowerCase()).toContain("ena");
+    expect(embed.fields?.some((f: { name: string }) => f.name.includes("Sources"))).toBe(true);
   });
 
   it("AskCommand replies gracefully when nothing matches", async () => {
@@ -28,7 +30,7 @@ describe("amia commands", () => {
 
     await command.execute(interaction as never, createMockCommandContext());
 
-    const embed = interaction.reply.mock.calls[0][0].embeds[0].toJSON();
+    const embed = interaction.editReply.mock.calls[0][0].embeds[0].toJSON();
     expect(embed.description).toContain("outside what I know");
   });
 
