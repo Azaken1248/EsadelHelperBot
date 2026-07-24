@@ -32,6 +32,7 @@ import type { ConfigCacheService } from "../../services/config-cache-service";
 import type { LlmClient } from "../../llm/llm-client";
 import type { GatekeeperService } from "../../services/gatekeeper-service";
 import type { KnowledgeService } from "../../services/knowledge-service";
+import type { MemoryExtractor } from "../../services/memory-extractor";
 import type { MemoryService } from "../../services/memory-service";
 import type { RagService } from "../../services/rag-service";
 import type { StrikeService } from "../../services/strike-service";
@@ -75,6 +76,7 @@ export const TOKENS = {
   knowledgeService: createToken<KnowledgeService>("knowledgeService"),
   llmClient: createToken<LlmClient>("llmClient"),
   memoryService: createToken<MemoryService>("memoryService"),
+  memoryExtractor: createToken<MemoryExtractor>("memoryExtractor"),
   ragService: createToken<RagService>("ragService"),
   configCacheService: createToken<ConfigCacheService>("configCacheService"),
   strikeService: createToken<StrikeService>("strikeService"),

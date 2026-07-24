@@ -10,6 +10,7 @@ const knowledge = new KnowledgeService();
 const makeLlm = (impl: Partial<LlmClient>): LlmClient => ({
   isEnabled: () => false,
   generate: async () => null,
+  embed: async () => null,
   ...impl,
 });
 
@@ -62,5 +63,26 @@ describe("RagService", () => {
     const answer = await service.ask("who is Ena?");
     expect(answer?.generated).toBe(false);
     expect(answer?.text.toLowerCase()).toContain("ena");
+  });
+
+  it("includes recent session turns in the prompt for continuity", async () => {
+    const { MemoryService } = await import("../../src/services/memory-service");
+    const { createInMemoryMemoryRepository } = await import("../helpers/mocks");
+    const memoryService = new MemoryService(createInMemoryMemoryRepository(), createMockLogger());
+
+    const generate = vi.fn().mockResolvedValue("Hehe, still Ena~ ♡");
+    const service = new RagService(
+      knowledge,
+      makeLlm({ isEnabled: () => true, generate }),
+      createMockLogger(),
+      memoryService,
+    );
+
+    await service.ask("who is Ena?", "u1");
+    await service.ask("what about the songs?", "u1");
+
+    const secondPrompt = generate.mock.calls[1][0].prompt as string;
+    expect(secondPrompt).toContain("RECENT CONVERSATION");
+    expect(secondPrompt).toContain("who is Ena?");
   });
 });

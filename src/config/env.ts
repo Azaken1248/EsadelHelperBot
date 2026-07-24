@@ -42,6 +42,7 @@ export interface AppConfig {
     enabled: boolean;
     baseUrl: string;
     model: string;
+    embedModel: string;
     timeoutMs: number;
   };
   extensionRules: {
@@ -211,6 +212,7 @@ export const loadAppConfig = (): AppConfig => {
       enabled: readBooleanWithDefault("LLM_ENABLED", false),
       baseUrl: readWithDefault("OLLAMA_BASE_URL", "http://localhost:11434"),
       model: readWithDefault("LLM_MODEL", "llama3.2:3b"),
+      embedModel: readWithDefault("LLM_EMBED_MODEL", "nomic-embed-text"),
       timeoutMs: readPositiveIntegerWithDefault("LLM_TIMEOUT_MS", 20000),
     },
     extensionRules: {

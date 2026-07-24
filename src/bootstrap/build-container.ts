@@ -30,6 +30,7 @@ import { ConfigCacheService } from "../services/config-cache-service";
 import { OllamaLlmClient } from "../llm/llm-client";
 import { GatekeeperService } from "../services/gatekeeper-service";
 import { KnowledgeService } from "../services/knowledge-service";
+import { MemoryExtractor } from "../services/memory-extractor";
 import { MemoryService } from "../services/memory-service";
 import { RagService } from "../services/rag-service";
 import { StrikeService } from "../services/strike-service";
@@ -170,6 +171,16 @@ export const buildContainer = (): ServiceContainer => {
       new MemoryService(
         resolver.resolve(TOKENS.memoryRepository),
         resolver.resolve(TOKENS.logger),
+        resolver.resolve(TOKENS.llmClient),
+      ),
+  );
+
+  container.registerSingleton(
+    TOKENS.memoryExtractor,
+    (resolver) =>
+      new MemoryExtractor(
+        resolver.resolve(TOKENS.llmClient),
+        resolver.resolve(TOKENS.logger),
       ),
   );
 
@@ -181,6 +192,7 @@ export const buildContainer = (): ServiceContainer => {
         resolver.resolve(TOKENS.llmClient),
         resolver.resolve(TOKENS.logger),
         resolver.resolve(TOKENS.memoryService),
+        resolver.resolve(TOKENS.memoryExtractor),
       ),
   );
 

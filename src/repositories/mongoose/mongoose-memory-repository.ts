@@ -9,10 +9,15 @@ import type {
 export class MongooseMemoryRepository implements MemoryRepository {
   async upsertReinforce(input: UpsertMemoryInput): Promise<IMemory> {
     const now = new Date();
+    const set: Record<string, unknown> = { kind: input.kind, lastReferencedAt: now };
+    if (input.embedding && input.embedding.length > 0) {
+      set.embedding = input.embedding;
+    }
+
     const memory = await MemoryModel.findOneAndUpdate(
       { discordUserId: input.discordUserId, text: input.text },
       {
-        $set: { kind: input.kind, lastReferencedAt: now },
+        $set: set,
         $inc: { strength: 1 },
       },
       { upsert: true, new: true, setDefaultsOnInsert: true },
@@ -33,6 +38,15 @@ export class MongooseMemoryRepository implements MemoryRepository {
       { _id: { $in: objectIds } },
       { $set: { lastReferencedAt: new Date() }, $inc: { refCount: 1 } },
     ).exec();
+  }
+
+  async deleteByIds(ids: string[]): Promise<number> {
+    const objectIds = ids.filter((id) => Types.ObjectId.isValid(id)).map((id) => new Types.ObjectId(id));
+    if (objectIds.length === 0) {
+      return 0;
+    }
+    const result = await MemoryModel.deleteMany({ _id: { $in: objectIds } }).exec();
+    return result.deletedCount ?? 0;
   }
 
   async deleteByUser(discordUserId: string): Promise<number> {

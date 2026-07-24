@@ -51,6 +51,7 @@ export const createTestConfig = (): AppConfig => ({
     enabled: false,
     baseUrl: "http://localhost:11434",
     model: "llama3.2:3b",
+    embedModel: "nomic-embed-text",
     timeoutMs: 20000,
   },
   extensionRules: {
@@ -86,6 +87,9 @@ export const createInMemoryMemoryRepository = (): MemoryRepository => {
       if (existing) {
         existing.strength += 1;
         existing.kind = input.kind;
+        if (input.embedding && input.embedding.length > 0) {
+          existing.embedding = input.embedding;
+        }
         existing.lastReferencedAt = new Date();
         return existing;
       }
@@ -96,6 +100,7 @@ export const createInMemoryMemoryRepository = (): MemoryRepository => {
         kind: input.kind,
         strength: 1,
         refCount: 0,
+        embedding: input.embedding ?? [],
         lastReferencedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -113,6 +118,15 @@ export const createInMemoryMemoryRepository = (): MemoryRepository => {
           memory.lastReferencedAt = new Date();
         }
       }
+    },
+    async deleteByIds(ids: string[]): Promise<number> {
+      const before = store.length;
+      for (let i = store.length - 1; i >= 0; i -= 1) {
+        if (ids.includes(store[i]!.id)) {
+          store.splice(i, 1);
+        }
+      }
+      return before - store.length;
     },
     async deleteByUser(discordUserId: string): Promise<number> {
       const before = store.length;
@@ -307,7 +321,11 @@ export const createMockCommandContext = (
       new OllamaLlmClient(config.llm, logger),
       logger,
     ),
-    memoryService: new MemoryService(createInMemoryMemoryRepository(), logger),
+    memoryService: new MemoryService(
+      createInMemoryMemoryRepository(),
+      logger,
+      new OllamaLlmClient(config.llm, logger),
+    ),
     ...overrides,
   };
 };

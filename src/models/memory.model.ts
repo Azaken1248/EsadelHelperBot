@@ -10,6 +10,10 @@ export interface IMemory extends Document {
   // has surfaced/been referenced. Both feed the activation score.
   strength: number;
   refCount: number;
+  // Optional local-embedding vector for semantic recall; empty when the
+  // embedding model was unavailable at write time (recall then falls back to
+  // keyword overlap for this memory).
+  embedding: number[];
   lastReferencedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -26,6 +30,7 @@ const MemorySchema = new Schema<IMemory>(
     },
     strength: { type: Number, default: 1, min: 0 },
     refCount: { type: Number, default: 0, min: 0 },
+    embedding: { type: [Number], default: [] },
     lastReferencedAt: { type: Date, default: Date.now },
   },
   {
