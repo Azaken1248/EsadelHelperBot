@@ -28,7 +28,7 @@ export class AskCommand implements SlashCommand {
     // A local LLM answer can take a few seconds — ack first, then edit.
     await interaction.deferReply();
 
-    const answer = await context.ragService.ask(question);
+    const answer = await context.ragService.ask(question, interaction.user.id);
 
     if (!answer) {
       await interaction.editReply({

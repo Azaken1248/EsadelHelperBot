@@ -22,6 +22,7 @@ import type { CommandDeployer } from "../../discord/command-deployer";
 import type { AssignmentRepository } from "../../repositories/interfaces/assignment-repository";
 import type { GuildConfigRepository } from "../../repositories/interfaces/guild-config-repository";
 import type { StrikeRepository } from "../../repositories/interfaces/strike-repository";
+import type { MemoryRepository } from "../../repositories/interfaces/memory-repository";
 import type { TaskReminderRepository } from "../../repositories/interfaces/task-reminder-repository";
 import type { UserRepository } from "../../repositories/interfaces/user-repository";
 import type { VerificationRepository } from "../../repositories/interfaces/verification-repository";
@@ -31,6 +32,7 @@ import type { ConfigCacheService } from "../../services/config-cache-service";
 import type { LlmClient } from "../../llm/llm-client";
 import type { GatekeeperService } from "../../services/gatekeeper-service";
 import type { KnowledgeService } from "../../services/knowledge-service";
+import type { MemoryService } from "../../services/memory-service";
 import type { RagService } from "../../services/rag-service";
 import type { StrikeService } from "../../services/strike-service";
 import type { TaskReminderBootstrapService } from "../../services/task-reminder-bootstrap-service";
@@ -59,6 +61,7 @@ export const TOKENS = {
   taskReminderRepository: createToken<TaskReminderRepository>("taskReminderRepository"),
   verificationRepository: createToken<VerificationRepository>("verificationRepository"),
   strikeRepository: createToken<StrikeRepository>("strikeRepository"),
+  memoryRepository: createToken<MemoryRepository>("memoryRepository"),
 
   // Services
   userService: createToken<UserService>("userService"),
@@ -71,6 +74,7 @@ export const TOKENS = {
   gatekeeperService: createToken<GatekeeperService>("gatekeeperService"),
   knowledgeService: createToken<KnowledgeService>("knowledgeService"),
   llmClient: createToken<LlmClient>("llmClient"),
+  memoryService: createToken<MemoryService>("memoryService"),
   ragService: createToken<RagService>("ragService"),
   configCacheService: createToken<ConfigCacheService>("configCacheService"),
   strikeService: createToken<StrikeService>("strikeService"),

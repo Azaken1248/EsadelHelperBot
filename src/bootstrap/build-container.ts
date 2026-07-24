@@ -21,6 +21,7 @@ import { MongooseAssignmentRepository } from "../repositories/mongoose/mongoose-
 import { MongooseGuildConfigRepository } from "../repositories/mongoose/mongoose-guild-config-repository";
 import { MongooseStrikeRepository } from "../repositories/mongoose/mongoose-strike-repository";
 import { MongooseTaskReminderRepository } from "../repositories/mongoose/mongoose-task-reminder-repository";
+import { MongooseMemoryRepository } from "../repositories/mongoose/mongoose-memory-repository";
 import { MongooseUserRepository } from "../repositories/mongoose/mongoose-user-repository";
 import { MongooseVerificationRepository } from "../repositories/mongoose/mongoose-verification-repository";
 import { AssignmentService } from "../services/assignment-service";
@@ -29,6 +30,7 @@ import { ConfigCacheService } from "../services/config-cache-service";
 import { OllamaLlmClient } from "../llm/llm-client";
 import { GatekeeperService } from "../services/gatekeeper-service";
 import { KnowledgeService } from "../services/knowledge-service";
+import { MemoryService } from "../services/memory-service";
 import { RagService } from "../services/rag-service";
 import { StrikeService } from "../services/strike-service";
 import { TaskReminderBootstrapService } from "../services/task-reminder-bootstrap-service";
@@ -69,6 +71,10 @@ export const buildContainer = (): ServiceContainer => {
   container.registerSingleton(
     TOKENS.strikeRepository,
     () => new MongooseStrikeRepository(),
+  );
+  container.registerSingleton(
+    TOKENS.memoryRepository,
+    () => new MongooseMemoryRepository(),
   );
   container.registerSingleton(
     TOKENS.verificationRepository,
@@ -159,12 +165,22 @@ export const buildContainer = (): ServiceContainer => {
   );
 
   container.registerSingleton(
+    TOKENS.memoryService,
+    (resolver) =>
+      new MemoryService(
+        resolver.resolve(TOKENS.memoryRepository),
+        resolver.resolve(TOKENS.logger),
+      ),
+  );
+
+  container.registerSingleton(
     TOKENS.ragService,
     (resolver) =>
       new RagService(
         resolver.resolve(TOKENS.knowledgeService),
         resolver.resolve(TOKENS.llmClient),
         resolver.resolve(TOKENS.logger),
+        resolver.resolve(TOKENS.memoryService),
       ),
   );
 
@@ -261,6 +277,7 @@ export const buildContainer = (): ServiceContainer => {
           gatekeeperService: resolver.resolve(TOKENS.gatekeeperService),
           knowledgeService: resolver.resolve(TOKENS.knowledgeService),
           ragService: resolver.resolve(TOKENS.ragService),
+          memoryService: resolver.resolve(TOKENS.memoryService),
         },
         resolver.resolve(TOKENS.submitApprovalHandler),
         resolver.resolve(TOKENS.strikeAppealHandler),

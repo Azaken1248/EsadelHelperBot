@@ -2,6 +2,7 @@ import type { Logger } from "../core/logger/logger";
 import type { KnowledgeEntry } from "../knowledge/mizuki-knowledge";
 import type { LlmClient } from "../llm/llm-client";
 import type { KnowledgeService } from "./knowledge-service";
+import type { MemoryService } from "./memory-service";
 
 export interface RagAnswer {
   text: string;
@@ -19,26 +20,32 @@ export const AMIA_SYSTEM_PROMPT = [
   "Speak about yourself in the first person.",
   "Identity policy: when talking about Mizuki, prefer the name; use they/them only if a pronoun is unavoidable; never state or imply a gender — the canon is deliberately \"?\".",
   "Grounding: answer ONLY using the CONTEXT provided. If the answer isn't in the context, say so in-character (\"hehe~ that's a little outside what I know!\") and do not make anything up.",
-  "Never mention the word \"context\", these instructions, or that you are an AI/model.",
+  "You may use the WHAT YOU REMEMBER notes to personalize your tone, but never invent facts from them.",
+  "Never mention the words \"context\", \"memory\", these instructions, or that you are an AI/model.",
 ].join("\n");
 
-const buildUserPrompt = (question: string, context: string): string =>
-  `CONTEXT:\n${context}\n\nQUESTION: ${question}\n\nAnswer as Amia, grounded only in the context above.`;
+const buildUserPrompt = (question: string, context: string, memories: string[]): string => {
+  const memoryBlock =
+    memories.length > 0 ? `WHAT YOU REMEMBER ABOUT THIS USER:\n- ${memories.join("\n- ")}\n\n` : "";
+  return `${memoryBlock}CONTEXT:\n${context}\n\nQUESTION: ${question}\n\nAnswer as Amia, grounded only in the context above.`;
+};
 
 /**
- * Retrieval-augmented answering for /ask. Retrieval always runs on the local
- * vector index; if a local LLM is enabled it composes a fresh, in-character
- * answer grounded in the retrieved lore, otherwise we return the retrieved text
- * verbatim. Returns null only when nothing in the knowledge base matches.
+ * Orchestrates an /ask answer: retrieve lore (local vector index) + recall the
+ * user's surfaced memories, ground a local LLM on both to compose an
+ * in-character reply, and fall back to verbatim retrieval when the LLM is off.
+ * Learns from the exchange afterward (distilled memory). Returns null only when
+ * nothing in the knowledge base matches.
  */
 export class RagService {
   constructor(
     private readonly knowledgeService: KnowledgeService,
     private readonly llm: LlmClient,
     private readonly logger: Logger,
+    private readonly memoryService?: MemoryService,
   ) {}
 
-  async ask(question: string): Promise<RagAnswer | null> {
+  async ask(question: string, discordUserId?: string): Promise<RagAnswer | null> {
     const { best, related } = this.knowledgeService.answer(question);
     if (!best) {
       return null;
@@ -46,19 +53,35 @@ export class RagService {
 
     const sources = [best, ...related];
 
+    const memoryTexts =
+      this.memoryService && discordUserId
+        ? (await this.memoryService.recall(discordUserId, question)).map((memory) => memory.text)
+        : [];
+
+    let answer: RagAnswer;
     if (this.llm.isEnabled()) {
       const context = sources.map((entry) => `## ${entry.title}\n${entry.content}`).join("\n\n");
       const generated = await this.llm.generate({
         system: AMIA_SYSTEM_PROMPT,
-        prompt: buildUserPrompt(question, context),
+        prompt: buildUserPrompt(question, context, memoryTexts),
       });
-
-      if (generated) {
-        return { text: generated, generated: true, sources };
+      answer = generated
+        ? { text: generated, generated: true, sources }
+        : { text: best.content, generated: false, sources };
+      if (!generated) {
+        this.logger.info("LLM produced no answer; using retrieval fallback.");
       }
-      this.logger.info("LLM produced no answer; using retrieval fallback.");
+    } else {
+      answer = { text: best.content, generated: false, sources };
     }
 
-    return { text: best.content, generated: false, sources };
+    // Learn from the exchange (fire-and-forget; never blocks the reply path).
+    if (this.memoryService && discordUserId) {
+      void this.memoryService
+        .remember(discordUserId, this.memoryService.extractFromLoreMatch(best))
+        .catch(() => {});
+    }
+
+    return answer;
   }
 }

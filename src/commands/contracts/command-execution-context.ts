@@ -5,6 +5,7 @@ import type { BulkAssignmentService } from "../../services/bulk-assignment-servi
 import type { ConfigCacheService } from "../../services/config-cache-service";
 import type { GatekeeperService } from "../../services/gatekeeper-service";
 import type { KnowledgeService } from "../../services/knowledge-service";
+import type { MemoryService } from "../../services/memory-service";
 import type { RagService } from "../../services/rag-service";
 import type { StrikeService } from "../../services/strike-service";
 import type { TimezoneTranslationService } from "../../services/timezone-translation-service";
@@ -22,4 +23,5 @@ export interface CommandExecutionContext {
   gatekeeperService: GatekeeperService;
   knowledgeService: KnowledgeService;
   ragService: RagService;
+  memoryService: MemoryService;
 }

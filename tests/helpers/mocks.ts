@@ -3,8 +3,14 @@ import { vi } from "vitest";
 import type { CommandExecutionContext } from "../../src/commands/contracts/command-execution-context";
 import type { AppConfig } from "../../src/config/env";
 import type { Logger } from "../../src/core/logger/logger";
+import type { IMemory } from "../../src/models/memory.model";
+import type {
+  MemoryRepository,
+  UpsertMemoryInput,
+} from "../../src/repositories/interfaces/memory-repository";
 import { OllamaLlmClient } from "../../src/llm/llm-client";
 import { KnowledgeService } from "../../src/services/knowledge-service";
+import { MemoryService } from "../../src/services/memory-service";
 import { RagService } from "../../src/services/rag-service";
 
 export const createTestConfig = (): AppConfig => ({
@@ -66,6 +72,59 @@ export const createMockLogger = (): Logger => ({
   warn: vi.fn(),
   error: vi.fn(),
 });
+
+/** Minimal in-memory MemoryRepository for exercising MemoryService in tests. */
+export const createInMemoryMemoryRepository = (): MemoryRepository => {
+  const store: IMemory[] = [];
+  let counter = 0;
+
+  return {
+    async upsertReinforce(input: UpsertMemoryInput): Promise<IMemory> {
+      const existing = store.find(
+        (m) => m.discordUserId === input.discordUserId && m.text === input.text,
+      );
+      if (existing) {
+        existing.strength += 1;
+        existing.kind = input.kind;
+        existing.lastReferencedAt = new Date();
+        return existing;
+      }
+      const created = {
+        id: `mem-${counter++}`,
+        discordUserId: input.discordUserId,
+        text: input.text,
+        kind: input.kind,
+        strength: 1,
+        refCount: 0,
+        lastReferencedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as unknown as IMemory;
+      store.push(created);
+      return created;
+    },
+    async findByUser(discordUserId: string): Promise<IMemory[]> {
+      return store.filter((m) => m.discordUserId === discordUserId);
+    },
+    async touch(ids: string[]): Promise<void> {
+      for (const memory of store) {
+        if (ids.includes(memory.id)) {
+          memory.refCount += 1;
+          memory.lastReferencedAt = new Date();
+        }
+      }
+    },
+    async deleteByUser(discordUserId: string): Promise<number> {
+      const before = store.length;
+      for (let i = store.length - 1; i >= 0; i -= 1) {
+        if (store[i]!.discordUserId === discordUserId) {
+          store.splice(i, 1);
+        }
+      }
+      return before - store.length;
+    },
+  };
+};
 
 export interface MockUserInput {
   id: string;
@@ -248,6 +307,7 @@ export const createMockCommandContext = (
       new OllamaLlmClient(config.llm, logger),
       logger,
     ),
+    memoryService: new MemoryService(createInMemoryMemoryRepository(), logger),
     ...overrides,
   };
 };

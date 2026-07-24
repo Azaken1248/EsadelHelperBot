@@ -2,6 +2,8 @@ import type { AppConfig } from "../../config/env";
 import { AmiaCommand } from "./amia/amia.command";
 import { AskCommand } from "./amia/ask.command";
 import { FactCommand } from "./amia/fact.command";
+import { ForgetMeCommand } from "./amia/forgetme.command";
+import { MemoryCommand } from "./amia/memory.command";
 import { QuoteCommand } from "./amia/quote.command";
 import { AppealStrikeCommand } from "./crew/appealstrike.command";
 import { DeboardCommand } from "./crew/deboard.command";
@@ -60,5 +62,7 @@ export const buildCommandModules = (config: AppConfig): SlashCommand[] => {
     new AskCommand(),
     new FactCommand(),
     new QuoteCommand(),
+    new MemoryCommand(),
+    new ForgetMeCommand(),
   ];
 };
