@@ -4,7 +4,13 @@ import type { LlmClient } from "../llm/llm-client";
 import type { MemoryKind } from "../models/memory.model";
 import type { MemoryCandidate } from "./memory-service";
 
-const VALID_KINDS: ReadonlySet<string> = new Set(["interest", "preference", "fact", "style"]);
+const VALID_KINDS: ReadonlySet<string> = new Set([
+  "interest",
+  "preference",
+  "fact",
+  "style",
+  "feeling",
+]);
 const MAX_CANDIDATES = 2;
 const MAX_TEXT_LENGTH = 120;
 // Cheap PII guard on top of the prompt rules: no long digit runs (IDs, phone
@@ -16,7 +22,8 @@ const EXTRACTION_SYSTEM_PROMPT = [
   `From the exchange, extract at most ${MAX_CANDIDATES} short notes about the USER themself — their interests, preferences, or how they like to talk.`,
   "Rules: write in third person, at most 12 words per note; only stable, user-specific information; never quote the messages verbatim; never store names of other people, IDs, contact details, or anything sensitive; if nothing is worth remembering, return an empty array.",
   'Respond with ONLY a JSON array, e.g. [{"text":"Loves Ena lore","kind":"interest"}].',
-  'Allowed kinds: "interest", "preference", "fact", "style".',
+  'Allowed kinds, by depth of disclosure: "fact" (objective info), "interest"/"preference"/"style" (opinions, tastes, how they like to talk), "feeling" (something vulnerable they chose to share).',
+  'Only use "feeling" when the user genuinely opened up — never infer it.',
 ].join("\n");
 
 /**

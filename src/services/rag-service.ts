@@ -3,7 +3,8 @@ import { AMIA_SELF_SUMMARY, type KnowledgeEntry } from "../knowledge/mizuki-know
 import type { LlmClient } from "../llm/llm-client";
 import type { KnowledgeService } from "./knowledge-service";
 import type { MemoryExtractor } from "./memory-extractor";
-import type { Familiarity, MemoryService } from "./memory-service";
+import type { Familiarity, MemoryService, Relationship } from "./memory-service";
+import { describeFloorGuidance } from "./relationship";
 import type { ConversationTurn } from "./short-term-memory";
 
 export interface RagAnswer {
@@ -59,14 +60,18 @@ export const describeFamiliarity = (familiarity: Familiarity): string => {
   }
 };
 
+/** Familiarity (how much/how long) plus floor guidance (how deep, how to escalate). */
+export const describeRelationship = (relationship: Relationship): string =>
+  `${describeFamiliarity(relationship.familiarity)}\n${describeFloorGuidance(relationship.floors)}`;
+
 const buildUserPrompt = (
   question: string,
   context: string,
   memories: string[],
   turns: ConversationTurn[],
-  familiarity?: Familiarity,
+  relationship?: Relationship,
 ): string => {
-  const familiarityBlock = familiarity ? `${describeFamiliarity(familiarity)}\n\n` : "";
+  const familiarityBlock = relationship ? `${describeRelationship(relationship)}\n\n` : "";
   const memoryBlock =
     memories.length > 0
       ? `${familiarityBlock}WHAT YOU REMEMBER ABOUT THIS USER:\n- ${memories.join("\n- ")}\n\n`
@@ -133,9 +138,9 @@ export class RagService {
 
       const turns =
         this.memoryService && discordUserId ? this.memoryService.recentTurns(discordUserId) : [];
-      const familiarity =
+      const relationship =
         this.memoryService && discordUserId
-          ? await this.memoryService.familiarity(discordUserId)
+          ? await this.memoryService.relationship(discordUserId)
           : undefined;
       const chat = await this.llm.generate({
         system: AMIA_NO_CONTEXT_SYSTEM_PROMPT,
@@ -144,7 +149,7 @@ export class RagService {
           "(no lore matched this question)",
           [],
           turns,
-          familiarity,
+          relationship,
         ),
       });
 
@@ -167,9 +172,9 @@ export class RagService {
         : [];
     const recentTurns =
       this.memoryService && discordUserId ? this.memoryService.recentTurns(discordUserId) : [];
-    const familiarity: Familiarity | undefined =
+    const relationship: Relationship | undefined =
       this.memoryService && discordUserId
-        ? await this.memoryService.familiarity(discordUserId)
+        ? await this.memoryService.relationship(discordUserId)
         : undefined;
 
     let answer: RagAnswer;
@@ -177,7 +182,7 @@ export class RagService {
       const context = this.buildContext(sources);
       const generated = await this.llm.generate({
         system: AMIA_SYSTEM_PROMPT,
-        prompt: buildUserPrompt(question, context, memoryTexts, recentTurns, familiarity),
+        prompt: buildUserPrompt(question, context, memoryTexts, recentTurns, relationship),
       });
       answer = generated
         ? { text: generated, generated: true, sources }

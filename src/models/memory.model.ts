@@ -1,6 +1,6 @@
 import { type Document, type Model, model, models, Schema } from "mongoose";
 
-export type MemoryKind = "interest" | "preference" | "fact" | "style";
+export type MemoryKind = "interest" | "preference" | "fact" | "style" | "feeling";
 
 export interface IMemory extends Document {
   discordUserId: string;
@@ -25,7 +25,7 @@ const MemorySchema = new Schema<IMemory>(
     text: { type: String, required: true },
     kind: {
       type: String,
-      enum: ["interest", "preference", "fact", "style"],
+      enum: ["interest", "preference", "fact", "style", "feeling"],
       default: "interest",
     },
     strength: { type: Number, default: 1, min: 0 },

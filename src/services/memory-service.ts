@@ -6,6 +6,12 @@ import type {
   MemoryRepository,
   UpsertMemoryInput,
 } from "../repositories/interfaces/memory-repository";
+import {
+  FLOOR_OPINIONS,
+  resolveFloorState,
+  type ConversationFloor,
+  type FloorState,
+} from "./relationship";
 import { ShortTermMemory, type ConversationTurn } from "./short-term-memory";
 
 export interface MemoryCandidate {
@@ -15,6 +21,11 @@ export interface MemoryCandidate {
 
 /** How well Amia knows someone — breadth, depth and duration of the relationship. */
 export type FamiliarityTier = "stranger" | "new" | "familiar" | "close";
+
+export interface Relationship {
+  familiarity: Familiarity;
+  floors: FloorState;
+}
 
 export interface Familiarity {
   tier: FamiliarityTier;
@@ -76,6 +87,12 @@ export class MemoryService {
     private readonly logger: Logger,
     private readonly llm?: LlmClient,
     private readonly shortTerm: ShortTermMemory = new ShortTermMemory(),
+    /**
+     * Deepest floor Amia may *invite*. Capped at opinions by default: this is a
+     * crew workspace, so she meets floor-4 vulnerability if it is offered but
+     * never fishes for it.
+     */
+    private readonly maxAskFloor: ConversationFloor = FLOOR_OPINIONS,
   ) {}
 
   private activation(memory: IMemory, now: number): number {
@@ -221,6 +238,25 @@ export class MemoryService {
     }
 
     return { tier, memoryCount: memories.length, interactions, knownForDays };
+  }
+
+  /**
+   * The conversational relationship: how much she knows (familiarity) plus how
+   * deep the disclosure has gone (floors). Floors govern how far she may invite
+   * someone to open up next.
+   */
+  async relationship(discordUserId: string): Promise<Relationship> {
+    const [familiarity, memories] = await Promise.all([
+      this.familiarity(discordUserId),
+      this.repository.findByUser(discordUserId),
+    ]);
+
+    const floors = resolveFloorState(
+      memories.map((memory) => memory.kind),
+      { maxAskFloor: this.maxAskFloor },
+    );
+
+    return { familiarity, floors };
   }
 
   /** All memories for a user, most-activated first (for /memory). */
