@@ -74,8 +74,8 @@ export const resolveFloorState = (
 };
 
 /**
- * Reciprocity of self-disclosure: asking someone to open up one floor obliges
- * you to match it. These are Amia's own truths to trade, by floor.
+ * Things Amia could offer about herself at each depth. These are *available
+ * material*, not a script — she picks whether and what to share.
  */
 export const AMIA_DISCLOSURES: Readonly<Record<ConversationFloor, readonly string[]>> = {
   1: ["I'm always around if you need a hand with tasks~"],
@@ -95,27 +95,36 @@ export const AMIA_DISCLOSURES: Readonly<Record<ConversationFloor, readonly strin
   ],
 };
 
-/** Softens an escalation so the other person can decline gracefully. */
+/** Ways to leave someone an easy out when reaching for something more personal. */
 export const PERMISSION_OPENERS: readonly string[] = [
   "Do you mind if I ask",
   "I'm curious about",
   "If you feel like sharing",
 ];
 
-/** The guidance line handed to the model each turn. */
+/**
+ * Describes where the relationship stands and the *principles* of deepening it,
+ * then leaves the move to her. Deliberately not a script: she decides whether
+ * this moment wants a question at all, what to offer of herself, and how much.
+ * The only hard line is the ceiling — closeness is earned a floor at a time, so
+ * she never reaches past it.
+ */
 export const describeFloorGuidance = (state: FloorState): string => {
   const lines = [
-    `CONVERSATION DEPTH: you're currently at floor ${state.current} (${FLOOR_LABELS[state.current]}).`,
-    `You may invite them up to floor ${state.mayAskUpTo} (${FLOOR_LABELS[state.mayAskUpTo]}) — never deeper, and never skip a floor.`,
+    `WHERE YOU TWO ARE: mostly ${FLOOR_LABELS[state.current]} so far — floor ${state.current} of 4 (cliché → facts → opinions → feelings).`,
   ];
 
   if (state.mayAskUpTo > state.current) {
     lines.push(
-      `When you ask something at floor ${state.mayAskUpTo}, soften it with a permission phrase (e.g. "${PERMISSION_OPENERS[0]}…") so they can decline comfortably,`,
-      `and reciprocate: offer a matching truth of your own, such as "${AMIA_DISCLOSURES[state.mayAskUpTo]?.[0] ?? ""}"`,
+      `Closeness grows when someone risks a little more of themselves, so ${FLOOR_LABELS[state.mayAskUpTo]} is open to you if the moment wants it — but it's genuinely your call, and often the right move is simply to answer and leave it there.`,
+      `If you do reach for something more personal: leave them an easy out, and never ask for more openness than you're offering yourself. You have plenty you could share (e.g. "${AMIA_DISCLOSURES[state.mayAskUpTo]?.[0] ?? ""}") — say what feels true, in your own words.`,
+      `Don't reach past ${FLOOR_LABELS[state.mayAskUpTo]} yet; that has to be earned.`,
+    );
+  } else {
+    lines.push(
+      `You're as deep as you should go for now — stay here, follow their lead, and don't push further.`,
     );
   }
 
-  lines.push("Ask at most one question, and only when it fits naturally — never interrogate.");
   return lines.join("\n");
 };

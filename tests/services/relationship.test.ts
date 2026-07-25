@@ -50,17 +50,36 @@ describe("resolveFloorState", () => {
 });
 
 describe("describeFloorGuidance", () => {
-  it("instructs permission-softening and reciprocity when escalating", () => {
+  it("offers the next floor as a choice rather than an instruction", () => {
     const guidance = describeFloorGuidance(resolveFloorState(kinds("fact")));
-    expect(guidance).toContain("floor 2");
-    expect(guidance).toContain("floor 3");
-    expect(guidance).toContain("permission phrase");
-    expect(guidance).toContain("reciprocate");
-    // it hands her an actual matching truth to trade
+
+    expect(guidance).toContain("floor 2 of 4");
+    expect(guidance).toContain("your call");
+    expect(guidance).toContain("simply to answer and leave it there");
+    // material she *may* use, offered in her own words
     expect(guidance).toContain(AMIA_DISCLOSURES[FLOOR_OPINIONS][0]!);
+    expect(guidance).toContain("in your own words");
   });
 
-  it("always warns against interrogating", () => {
-    expect(describeFloorGuidance(resolveFloorState([]))).toContain("never interrogate");
+  it("states reciprocity as a principle, not a mandated line", () => {
+    const guidance = describeFloorGuidance(resolveFloorState(kinds("fact")));
+    expect(guidance).toContain("never ask for more openness than you're offering");
+    expect(guidance).toContain("easy out");
+  });
+
+  it("does not dictate how many questions to ask", () => {
+    const guidance = describeFloorGuidance(resolveFloorState(kinds("fact")));
+    expect(guidance).not.toMatch(/at most one question/i);
+  });
+
+  it("tells her to hold still once she's at her ceiling", () => {
+    const guidance = describeFloorGuidance(resolveFloorState(kinds("interest", "preference")));
+    expect(guidance).toContain("follow their lead");
+    expect(guidance).toContain("don't push further");
+  });
+
+  it("still enforces the ceiling as a hard boundary", () => {
+    const guidance = describeFloorGuidance(resolveFloorState(kinds("fact")));
+    expect(guidance).toContain("has to be earned");
   });
 });
