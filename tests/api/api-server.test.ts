@@ -131,6 +131,50 @@ describe("ApiServer", () => {
     expect(res.statusCode).toBe(401);
   });
 
+  it("does not reflect arbitrary origins (CORS allow-list, no wildcard)", async () => {
+    const { server } = buildServer();
+    app = await server.buildTestInstance();
+
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/health",
+      headers: { origin: "https://evil.example" },
+    });
+
+    expect(res.headers["access-control-allow-origin"]).toBeUndefined();
+  });
+
+  it("allows a configured CORS origin", async () => {
+    const { server } = buildServer();
+    (server as unknown as { config: { web: { corsOrigins: string[] } } }).config.web.corsOrigins = [
+      "https://dash.example",
+    ];
+    app = await server.buildTestInstance();
+
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/health",
+      headers: { origin: "https://dash.example" },
+    });
+
+    expect(res.headers["access-control-allow-origin"]).toBe("https://dash.example");
+  });
+
+  it("rate limits once the per-minute quota is exceeded", async () => {
+    const { server } = buildServer();
+    (server as unknown as { config: { web: { rateLimitPerMinute: number } } }).config.web.rateLimitPerMinute = 2;
+    app = await server.buildTestInstance();
+
+    const codes: number[] = [];
+    for (let i = 0; i < 4; i += 1) {
+      const res = await app.inject({ method: "GET", url: "/api/health" });
+      codes.push(res.statusCode);
+    }
+
+    expect(codes.slice(0, 2)).toEqual([200, 200]);
+    expect(codes.at(-1)).toBe(429);
+  });
+
   it("runs gatekeeper verification (captcha disabled in test config)", async () => {
     const configCacheService = { refreshConfig: vi.fn() };
     const gatekeeperService = { verifyMember: vi.fn().mockResolvedValue({ status: "verified" }) };

@@ -10,7 +10,12 @@
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "verify": "npm run lint && npm run typecheck && npm run test:run"
   },
   "keywords": [
     "discord",
@@ -28,6 +33,7 @@
   "dependencies": {
     "@fastify/cors": "^11.3.0",
     "@fastify/jwt": "^10.2.0",
+    "@fastify/rate-limit": "^11.1.0",
     "chrono-node": "^2.9.0",
     "discord.js": "^14.19.2",
     "dotenv": "^16.5.0",
@@ -35,9 +41,13 @@
     "mongoose": "^8.15.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@types/node": "^22.15.3",
+    "eslint": "^9.39.5",
+    "prettier": "^3.9.6",
     "tsx": "^4.21.0",
     "typescript": "^5.8.3",
+    "typescript-eslint": "^8.65.0",
     "vitest": "^4.1.5"
   }
 }

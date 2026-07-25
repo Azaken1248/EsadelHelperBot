@@ -92,6 +92,8 @@ export class ProfileCommand implements SlashCommand {
           }
         }
       } catch {
+        // Member fetch failed (left the guild, missing intent) — fall back to
+        // "Standard Crew" rather than failing the whole profile card.
       }
     }
 

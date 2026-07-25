@@ -43,6 +43,8 @@ export const createTestConfig = (): AppConfig => ({
   web: {
     port: 3000,
     jwtSecret: "jwt-secret",
+    corsOrigins: [],
+    rateLimitPerMinute: 60,
   },
   logging: {
     streamJson: false,

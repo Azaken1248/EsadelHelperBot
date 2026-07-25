@@ -1,5 +1,6 @@
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
+import rateLimit from "@fastify/rate-limit";
 import Fastify, {
   type FastifyInstance,
   type FastifyReply,
@@ -16,6 +17,12 @@ import type {
 } from "../repositories/interfaces/guild-config-repository";
 import type { ConfigCacheService } from "../services/config-cache-service";
 import type { GatekeeperService } from "../services/gatekeeper-service";
+
+const PLACEHOLDER_SECRETS = new Set(["your-analytics-jwt-secret", "changeme", "secret"]);
+const MIN_SECRET_LENGTH = 32;
+
+const isWeakSecret = (secret: string): boolean =>
+  PLACEHOLDER_SECRETS.has(secret.trim().toLowerCase()) || secret.trim().length < MIN_SECRET_LENGTH;
 
 interface GuildConfigDto {
   guildId: string;
@@ -64,15 +71,37 @@ export class ApiServer {
       return;
     }
 
-    const app = Fastify({ logger: false });
-    await app.register(cors, { origin: true });
-    await app.register(jwt, { secret });
+    if (isWeakSecret(secret)) {
+      this.logger.warn(
+        "ANALYTICS_JWT_SECRET looks weak or is still the example placeholder — set a long random value before exposing the API.",
+      );
+    }
 
+    const app = Fastify({ logger: false, trustProxy: true });
+    await this.registerPlugins(app, secret);
     this.registerRoutes(app);
 
     await app.listen({ port: this.config.web.port, host: "0.0.0.0" });
     this.app = app;
-    this.logger.info("HTTP API listening.", { port: this.config.web.port });
+    this.logger.info("HTTP API listening.", {
+      port: this.config.web.port,
+      corsOrigins: this.config.web.corsOrigins.length > 0 ? this.config.web.corsOrigins : "none",
+      rateLimitPerMinute: this.config.web.rateLimitPerMinute,
+    });
+  }
+
+  /** CORS is allow-list driven (never a wildcard) and every route is rate limited. */
+  private async registerPlugins(app: FastifyInstance, secret: string): Promise<void> {
+    const allowed = this.config.web.corsOrigins;
+    await app.register(cors, {
+      origin: allowed.length > 0 ? allowed : false,
+      credentials: true,
+    });
+    await app.register(rateLimit, {
+      max: this.config.web.rateLimitPerMinute,
+      timeWindow: "1 minute",
+    });
+    await app.register(jwt, { secret });
   }
 
   async stop(): Promise<void> {
@@ -84,9 +113,8 @@ export class ApiServer {
 
   /** Exposed for tests: builds the configured Fastify instance without listening. */
   async buildTestInstance(): Promise<FastifyInstance> {
-    const app = Fastify({ logger: false });
-    await app.register(cors, { origin: true });
-    await app.register(jwt, { secret: this.config.web.jwtSecret ?? "test-secret" });
+    const app = Fastify({ logger: false, trustProxy: true });
+    await this.registerPlugins(app, this.config.web.jwtSecret ?? "test-secret");
     this.registerRoutes(app);
     await app.ready();
     return app;

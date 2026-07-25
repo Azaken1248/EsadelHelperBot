@@ -34,6 +34,10 @@ export interface AppConfig {
   web: {
     port: number;
     jwtSecret: string | null;
+    /** Allowed CORS origins; empty means same-origin/non-browser clients only. */
+    corsOrigins: string[];
+    /** Max requests per minute, per IP. */
+    rateLimitPerMinute: number;
   };
   logging: {
     streamJson: boolean;
@@ -76,6 +80,17 @@ const readOptionalEnv = (name: string): string | null => {
 const readWithDefault = (name: string, fallback: string): string => {
   const value = process.env[name]?.trim();
   return value && value.length > 0 ? value : fallback;
+};
+
+const readCsvList = (name: string): string[] => {
+  const value = readOptionalEnv(name);
+  if (value === null) {
+    return [];
+  }
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
 };
 
 const readOptionalNonNegativeInteger = (name: string): number | null => {
@@ -227,6 +242,8 @@ export const loadAppConfig = (): AppConfig => {
     web: {
       port: readPositiveIntegerWithDefault("WEBSITE_PORT", 3000),
       jwtSecret: readOptionalEnv("ANALYTICS_JWT_SECRET"),
+      corsOrigins: readCsvList("API_CORS_ORIGINS"),
+      rateLimitPerMinute: readPositiveIntegerWithDefault("API_RATE_LIMIT_PER_MINUTE", 60),
     },
     logging: {
       streamJson: readBooleanWithDefault("LOG_STREAM_JSON", false),
