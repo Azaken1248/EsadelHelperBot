@@ -171,6 +171,29 @@ const buildSpecializedRoleConfig = (): Record<SpecializedRoleKey, string> => {
   return config as Record<SpecializedRoleKey, string>;
 };
 
+/**
+ * Returns the config paths of role IDs that are still unconfigured — either the
+ * REPLACE_WITH_* placeholders from constants.ts or blank values. Used at
+ * startup to warn the operator before role-dependent features misbehave.
+ */
+export const findPlaceholderRoleIds = (config: AppConfig): string[] => {
+  const isPlaceholder = (value: string): boolean =>
+    value.trim().length === 0 || value.startsWith("REPLACE_WITH_");
+
+  const unconfigured: string[] = [];
+  if (isPlaceholder(config.roles.owners)) unconfigured.push("roles.owners");
+  if (isPlaceholder(config.roles.mods)) unconfigured.push("roles.mods");
+  if (isPlaceholder(config.roles.crew)) unconfigured.push("roles.crew");
+
+  for (const [key, roleId] of Object.entries(config.roles.specialized) as [string, string][]) {
+    if (isPlaceholder(roleId)) {
+      unconfigured.push(`roles.specialized.${key}`);
+    }
+  }
+
+  return unconfigured;
+};
+
 export const loadAppConfig = (): AppConfig => {
   const guildId = readOptionalEnv("DISCORD_GUILD_ID") ?? readRequiredEnv("GUILD_ID");
 

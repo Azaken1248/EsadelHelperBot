@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { loadAppConfig } from "../../src/config/env";
+import { findPlaceholderRoleIds, loadAppConfig } from "../../src/config/env";
 
 const originalEnv = { ...process.env };
 
@@ -117,5 +117,45 @@ describe("loadAppConfig", () => {
     expect(() => loadAppConfig()).toThrowError(
       "Missing required environment variable: GUILD_ID",
     );
+  });
+});
+
+describe("findPlaceholderRoleIds", () => {
+  it("reports structural roles left as REPLACE_WITH_* placeholders", () => {
+    process.env = {};
+    setRequiredBaseEnv();
+
+    const config = loadAppConfig();
+
+    expect(findPlaceholderRoleIds(config)).toEqual([
+      "roles.owners",
+      "roles.mods",
+      "roles.crew",
+    ]);
+  });
+
+  it("returns an empty list when all role IDs are configured", () => {
+    process.env = {};
+    setRequiredBaseEnv();
+    process.env.ROLE_OWNER_ID = "111";
+    process.env.ROLE_MOD_ID = "222";
+    process.env.ROLE_CREW_ID = "333";
+
+    const config = loadAppConfig();
+
+    expect(findPlaceholderRoleIds(config)).toEqual([]);
+  });
+
+  it("treats blank role values as unconfigured", () => {
+    process.env = {};
+    setRequiredBaseEnv();
+    process.env.ROLE_OWNER_ID = "111";
+    process.env.ROLE_MOD_ID = "222";
+    process.env.ROLE_CREW_ID = "333";
+
+    const config = loadAppConfig();
+    config.roles.crew = "   ";
+
+    expect(findPlaceholderRoleIds(config)).toEqual(["roles.crew"]);
   });
 });

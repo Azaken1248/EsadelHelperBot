@@ -4,7 +4,7 @@ import type { ApiServer } from "../api/api-server";
 import type { SlashCommand } from "../commands/contracts/slash-command";
 import type { InteractionCreateHandler } from "../commands/handlers/interaction-create-handler";
 import type { CommandLoader } from "../commands/loader/command-loader";
-import type { AppConfig } from "../config/env";
+import { findPlaceholderRoleIds, type AppConfig } from "../config/env";
 import type { EventBus } from "../core/events/event-bus";
 import {
   isLogSinkRegistrar,
@@ -57,6 +57,14 @@ export class EsadelBot {
 
   async start(): Promise<Result<void, Error>> {
     try {
+      const placeholderRoles = findPlaceholderRoleIds(this.config);
+      if (placeholderRoles.length > 0) {
+        this.logger.warn(
+          "Some role IDs are unconfigured placeholders — role-gated features will misbehave until they are set.",
+          { placeholderRoles },
+        );
+      }
+
       await connectToDatabase(this.config.mongo.uri, this.logger);
 
       const startupGuildId = process.env.GUILD_ID?.trim() || this.config.discord.guildId;
