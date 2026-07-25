@@ -96,29 +96,41 @@ export class InteractionCreateHandler {
         message,
       });
 
-      if (interaction.replied || interaction.deferred) {
-        await interaction.followUp({
-          embeds: [
-            createEsadelEmbed({
-              title: "Esadel Error Report",
-              description: `Command failed: ${message}`,
-              tone: "twilight",
-            }),
-          ],
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
+      await this.reportCommandError(interaction, message);
+    }
+  }
 
-      await interaction.reply({
-        embeds: [
-          createEsadelEmbed({
-            title: "Esadel Error Report",
-            description: `Command failed: ${message}`,
-            tone: "twilight",
-          }),
-        ],
-        flags: MessageFlags.Ephemeral,
+  /**
+   * Best-effort error notice. The interaction may already be acknowledged, or
+   * its 3-second token may have expired ("Unknown interaction") — in which case
+   * there is nothing left to reply to, so we log rather than throw out of the
+   * handler and surface an unhandled rejection.
+   */
+  private async reportCommandError(
+    interaction: ChatInputCommandInteraction,
+    message: string,
+  ): Promise<void> {
+    const payload = {
+      embeds: [
+        createEsadelEmbed({
+          title: "Esadel Error Report",
+          description: `Command failed: ${message}`,
+          tone: "twilight" as const,
+        }),
+      ],
+      flags: MessageFlags.Ephemeral as const,
+    };
+
+    try {
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp(payload);
+      } else {
+        await interaction.reply(payload);
+      }
+    } catch (replyError) {
+      this.logger.warn("Could not deliver the error notice to Discord.", {
+        commandName: interaction.commandName,
+        message: replyError instanceof Error ? replyError.message : "Unknown reply failure.",
       });
     }
   }
