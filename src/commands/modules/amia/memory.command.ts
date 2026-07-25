@@ -43,6 +43,14 @@ export class MemoryCommand implements SlashCommand {
       return;
     }
 
+    const familiarity = await context.memoryService.familiarity(interaction.user.id);
+    const TIER_LABEL: Record<string, string> = {
+      stranger: "we've just met",
+      new: "still getting to know you",
+      familiar: "we're friends~",
+      close: "we're close friends ♡",
+    };
+
     const lines = memories
       .slice(0, 15)
       .map((memory) => `> ${KIND_LABEL[memory.kind] ?? memory.kind} — ${memory.text}`)
@@ -56,6 +64,14 @@ export class MemoryCommand implements SlashCommand {
           tone: "sakura",
           voiceWrap: false,
           fields: [
+            {
+              name: "◈ How well I know you",
+              value:
+                `> ${TIER_LABEL[familiarity.tier] ?? familiarity.tier} — ` +
+                `${familiarity.memoryCount} thing${familiarity.memoryCount === 1 ? "" : "s"} remembered` +
+                `${familiarity.knownForDays > 0 ? ` over ${familiarity.knownForDays} day${familiarity.knownForDays === 1 ? "" : "s"}` : " (since today)"}`,
+              inline: false,
+            },
             {
               name: "◈ Your control",
               value: "> Want a clean slate? Use `/forgetme` and I'll forget it all. ♡",

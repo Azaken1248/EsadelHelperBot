@@ -41,6 +41,34 @@ describe("RagService", () => {
     expect(system).toContain("do NOT state specific facts you weren't given");
   });
 
+  it("tells the model how well it knows the user", async () => {
+    const { MemoryService } = await import("../../src/services/memory-service");
+    const { createInMemoryMemoryRepository } = await import("../helpers/mocks");
+    const memoryService = new MemoryService(createInMemoryMemoryRepository(), createMockLogger());
+
+    const generate = vi.fn().mockResolvedValue("hi~");
+    const service = new RagService(
+      knowledge,
+      makeLlm({ isGenerationEnabled: () => true, generate }),
+      createMockLogger(),
+      memoryService,
+    );
+
+    // First ever contact → stranger
+    await service.ask("who is Ena?", "newcomer");
+    expect(generate.mock.calls[0][0].prompt).toContain("never spoken before");
+
+    // After learning a few things → warmer framing
+    await memoryService.remember("regular", [
+      { text: "Likes Ena", kind: "interest" },
+      { text: "Prefers short answers", kind: "preference" },
+      { text: "Enjoys teasing", kind: "style" },
+    ]);
+    await service.ask("who is Ena?", "regular");
+    expect(generate.mock.calls[1][0].prompt).toContain("YOU AND THIS USER");
+    expect(generate.mock.calls[1][0].prompt).toContain("chatted a fair bit");
+  });
+
   it("always carries her self-knowledge, grounded or not", async () => {
     const generate = vi.fn().mockResolvedValue("hi~");
     const service = new RagService(

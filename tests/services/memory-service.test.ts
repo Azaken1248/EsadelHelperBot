@@ -132,6 +132,57 @@ describe("MemoryService", () => {
     expect(listed).toHaveLength(1);
   });
 
+  describe("familiarity", () => {
+    it("reports a stranger when nothing is remembered", async () => {
+      const { service } = makeService();
+      expect(await service.familiarity("nobody")).toMatchObject({
+        tier: "stranger",
+        memoryCount: 0,
+        knownForDays: 0,
+      });
+    });
+
+    it("is 'new' for a first conversation", async () => {
+      const { service } = makeService();
+      await service.remember("u1", [{ text: "Curious about Ena", kind: "interest" }]);
+
+      const f = await service.familiarity("u1");
+      expect(f.tier).toBe("new");
+      expect(f.memoryCount).toBe(1);
+    });
+
+    it("becomes 'familiar' once a few things are known", async () => {
+      const { service } = makeService();
+      await service.remember("u1", [
+        { text: "Likes Ena", kind: "interest" },
+        { text: "Prefers short answers", kind: "preference" },
+        { text: "Teasing banter", kind: "style" },
+      ]);
+
+      expect((await service.familiarity("u1")).tier).toBe("familiar");
+    });
+
+    it("needs both breadth AND time to become 'close'", async () => {
+      const { service, repo } = makeService();
+      for (let i = 0; i < 12; i += 1) {
+        await service.remember("u1", [{ text: `Thing ${i}`, kind: "interest" }]);
+      }
+
+      // Lots of memories but all from today — not close yet.
+      expect((await service.familiarity("u1")).tier).toBe("familiar");
+
+      // Backdate their first memories by a month.
+      const all = await repo.findByUser("u1");
+      for (const m of all) {
+        m.createdAt = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      }
+
+      const f = await service.familiarity("u1");
+      expect(f.tier).toBe("close");
+      expect(f.knownForDays).toBeGreaterThanOrEqual(29);
+    });
+  });
+
   it("tracks session turns and forget() clears both stores", async () => {
     const { service, stm } = makeService();
     await service.remember("u1", [{ text: "Curious about Ena", kind: "interest" }]);

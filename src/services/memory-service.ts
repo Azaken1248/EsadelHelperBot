@@ -13,6 +13,19 @@ export interface MemoryCandidate {
   kind: MemoryKind;
 }
 
+/** How well Amia knows someone — breadth, depth and duration of the relationship. */
+export type FamiliarityTier = "stranger" | "new" | "familiar" | "close";
+
+export interface Familiarity {
+  tier: FamiliarityTier;
+  /** Distinct things she remembers about them. */
+  memoryCount: number;
+  /** Total reinforcements — how often those things have come up. */
+  interactions: number;
+  /** Days since the first thing she learned about them. */
+  knownForDays: number;
+}
+
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 // Recency decay (~14-day half-life) and a frequency term, per the activation model.
 const DECAY_LAMBDA_PER_DAY = 0.05;
@@ -179,6 +192,35 @@ export class MemoryService {
 
     await this.repository.touch(ranked.map((memory) => memory.id));
     return ranked;
+  }
+
+  /**
+   * How well Amia knows this user. Tiers need BOTH breadth (distinct memories)
+   * and time, so someone who spams questions in one sitting doesn't instantly
+   * become a "close" friend.
+   */
+  async familiarity(discordUserId: string): Promise<Familiarity> {
+    const memories = await this.repository.findByUser(discordUserId);
+    if (memories.length === 0) {
+      return { tier: "stranger", memoryCount: 0, interactions: 0, knownForDays: 0 };
+    }
+
+    const now = Date.now();
+    const earliest = Math.min(...memories.map((memory) => memory.createdAt.getTime()));
+    const knownForDays = Math.floor((now - earliest) / MS_PER_DAY);
+    const interactions = memories.reduce(
+      (total, memory) => total + memory.strength + memory.refCount,
+      0,
+    );
+
+    let tier: FamiliarityTier = "new";
+    if (memories.length >= 10 && knownForDays >= 14) {
+      tier = "close";
+    } else if (memories.length >= 3) {
+      tier = "familiar";
+    }
+
+    return { tier, memoryCount: memories.length, interactions, knownForDays };
   }
 
   /** All memories for a user, most-activated first (for /memory). */

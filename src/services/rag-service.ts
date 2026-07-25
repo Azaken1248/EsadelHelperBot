@@ -3,7 +3,7 @@ import { AMIA_SELF_SUMMARY, type KnowledgeEntry } from "../knowledge/mizuki-know
 import type { LlmClient } from "../llm/llm-client";
 import type { KnowledgeService } from "./knowledge-service";
 import type { MemoryExtractor } from "./memory-extractor";
-import type { MemoryService } from "./memory-service";
+import type { Familiarity, MemoryService } from "./memory-service";
 import type { ConversationTurn } from "./short-term-memory";
 
 export interface RagAnswer {
@@ -45,14 +45,32 @@ export const AMIA_NO_CONTEXT_SYSTEM_PROMPT = [
 const formatTurns = (turns: ConversationTurn[]): string =>
   turns.map((turn) => `${turn.role === "user" ? "User" : "Amia"}: ${turn.text}`).join("\n");
 
+/** One line telling the model how close it should feel to this person. */
+export const describeFamiliarity = (familiarity: Familiarity): string => {
+  switch (familiarity.tier) {
+    case "stranger":
+      return "YOU AND THIS USER: you've never spoken before — be welcoming and introduce yourself lightly.";
+    case "new":
+      return `YOU AND THIS USER: you've only just met (${familiarity.knownForDays === 0 ? "today" : `${familiarity.knownForDays}d ago`}) — friendly, still getting to know them.`;
+    case "familiar":
+      return `YOU AND THIS USER: you've chatted a fair bit over ~${familiarity.knownForDays}d — warm and comfortable, tease them a little.`;
+    case "close":
+      return `YOU AND THIS USER: you've known them ~${familiarity.knownForDays}d and remember ${familiarity.memoryCount} things — treat them as a close friend: extra familiar, playful and teasing.`;
+  }
+};
+
 const buildUserPrompt = (
   question: string,
   context: string,
   memories: string[],
   turns: ConversationTurn[],
+  familiarity?: Familiarity,
 ): string => {
+  const familiarityBlock = familiarity ? `${describeFamiliarity(familiarity)}\n\n` : "";
   const memoryBlock =
-    memories.length > 0 ? `WHAT YOU REMEMBER ABOUT THIS USER:\n- ${memories.join("\n- ")}\n\n` : "";
+    memories.length > 0
+      ? `${familiarityBlock}WHAT YOU REMEMBER ABOUT THIS USER:\n- ${memories.join("\n- ")}\n\n`
+      : familiarityBlock;
   const conversationBlock =
     turns.length > 0 ? `RECENT CONVERSATION:\n${formatTurns(turns)}\n\n` : "";
   return `${conversationBlock}${memoryBlock}CONTEXT:\n${context}\n\nQUESTION: ${question}\n\nAnswer as Amia, grounded only in the context above.`;
@@ -115,9 +133,19 @@ export class RagService {
 
       const turns =
         this.memoryService && discordUserId ? this.memoryService.recentTurns(discordUserId) : [];
+      const familiarity =
+        this.memoryService && discordUserId
+          ? await this.memoryService.familiarity(discordUserId)
+          : undefined;
       const chat = await this.llm.generate({
         system: AMIA_NO_CONTEXT_SYSTEM_PROMPT,
-        prompt: buildUserPrompt(question, "(no lore matched this question)", [], turns),
+        prompt: buildUserPrompt(
+          question,
+          "(no lore matched this question)",
+          [],
+          turns,
+          familiarity,
+        ),
       });
 
       if (!chat) {
@@ -139,13 +167,17 @@ export class RagService {
         : [];
     const recentTurns =
       this.memoryService && discordUserId ? this.memoryService.recentTurns(discordUserId) : [];
+    const familiarity: Familiarity | undefined =
+      this.memoryService && discordUserId
+        ? await this.memoryService.familiarity(discordUserId)
+        : undefined;
 
     let answer: RagAnswer;
     if (this.llm.isGenerationEnabled()) {
       const context = this.buildContext(sources);
       const generated = await this.llm.generate({
         system: AMIA_SYSTEM_PROMPT,
-        prompt: buildUserPrompt(question, context, memoryTexts, recentTurns),
+        prompt: buildUserPrompt(question, context, memoryTexts, recentTurns, familiarity),
       });
       answer = generated
         ? { text: generated, generated: true, sources }
