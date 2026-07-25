@@ -8,7 +8,8 @@ import { createMockLogger } from "../helpers/mocks";
 const knowledge = new KnowledgeService();
 
 const makeLlm = (impl: Partial<LlmClient>): LlmClient => ({
-  isEnabled: () => false,
+  isGenerationEnabled: () => false,
+  isEmbeddingsEnabled: () => false,
   generate: async () => null,
   embed: async () => null,
   ...impl,
@@ -24,7 +25,7 @@ describe("RagService", () => {
     const generate = vi.fn();
     const service = new RagService(
       knowledge,
-      makeLlm({ isEnabled: () => false, generate }),
+      makeLlm({ isGenerationEnabled: () => false, generate }),
       createMockLogger(),
     );
 
@@ -39,7 +40,7 @@ describe("RagService", () => {
     const generate = vi.fn().mockResolvedValue("Ena's my closest friend~ ♡");
     const service = new RagService(
       knowledge,
-      makeLlm({ isEnabled: () => true, generate }),
+      makeLlm({ isGenerationEnabled: () => true, generate }),
       createMockLogger(),
     );
 
@@ -56,13 +57,33 @@ describe("RagService", () => {
   it("falls back to retrieval when the LLM returns nothing", async () => {
     const service = new RagService(
       knowledge,
-      makeLlm({ isEnabled: () => true, generate: async () => null }),
+      makeLlm({ isGenerationEnabled: () => true, generate: async () => null }),
       createMockLogger(),
     );
 
     const answer = await service.ask("who is Ena?");
     expect(answer?.generated).toBe(false);
     expect(answer?.text.toLowerCase()).toContain("ena");
+  });
+
+  it("caps grounding context by entry count and length (cheap prompts on weak CPUs)", async () => {
+    const generate = vi.fn().mockResolvedValue("ok~");
+    const service = new RagService(
+      knowledge,
+      makeLlm({ isGenerationEnabled: () => true, generate }),
+      createMockLogger(),
+      undefined,
+      undefined,
+      { maxEntries: 1, maxCharsPerEntry: 80 },
+    );
+
+    await service.ask("who is Ena?");
+
+    const prompt = generate.mock.calls[0][0].prompt as string;
+    const context = prompt.split("CONTEXT:\n")[1]!.split("\n\nQUESTION:")[0]!;
+    expect(context.split("## ").filter(Boolean)).toHaveLength(1); // only one entry
+    expect(context).toContain("…"); // long entry was truncated
+    expect(context.length).toBeLessThan(200);
   });
 
   it("includes recent session turns in the prompt for continuity", async () => {
@@ -73,7 +94,7 @@ describe("RagService", () => {
     const generate = vi.fn().mockResolvedValue("Hehe, still Ena~ ♡");
     const service = new RagService(
       knowledge,
-      makeLlm({ isEnabled: () => true, generate }),
+      makeLlm({ isGenerationEnabled: () => true, generate }),
       createMockLogger(),
       memoryService,
     );

@@ -18,7 +18,8 @@ const makeService = (llm?: LlmClient) => {
 
 /** Fake embedder mapping "ena"/"bestie" to one axis and everything else to the other. */
 const makeEmbeddingLlm = (): LlmClient => ({
-  isEnabled: () => true,
+  isGenerationEnabled: () => true,
+  isEmbeddingsEnabled: () => true,
   generate: async () => null,
   embed: async (text: string) =>
     /ena|bestie/i.test(text) ? [1, 0] : [0, 1],

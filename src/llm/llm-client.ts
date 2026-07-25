@@ -10,14 +10,18 @@ export interface LlmGenerateInput {
 }
 
 export interface LlmClient {
-  isEnabled(): boolean;
+  /** Text generation available? (expensive on CPU) */
+  isGenerationEnabled(): boolean;
+  /** Embeddings available? (cheap — a single forward pass) */
+  isEmbeddingsEnabled(): boolean;
   generate(input: LlmGenerateInput): Promise<string | null>;
   /** Embed text into a vector via the local embedding model; null on any failure. */
   embed(text: string): Promise<number[] | null>;
 }
 
 export interface LlmConfig {
-  enabled: boolean;
+  generationEnabled: boolean;
+  embeddingsEnabled: boolean;
   baseUrl: string;
   model: string;
   embedModel: string;
@@ -44,8 +48,12 @@ export class OllamaLlmClient implements LlmClient {
     private readonly logger: Logger,
   ) {}
 
-  isEnabled(): boolean {
-    return this.config.enabled;
+  isGenerationEnabled(): boolean {
+    return this.config.generationEnabled;
+  }
+
+  isEmbeddingsEnabled(): boolean {
+    return this.config.embeddingsEnabled;
   }
 
   private baseUrl(): string {
@@ -53,7 +61,7 @@ export class OllamaLlmClient implements LlmClient {
   }
 
   async generate({ system, prompt, options }: LlmGenerateInput): Promise<string | null> {
-    if (!this.config.enabled) {
+    if (!this.config.generationEnabled) {
       return null;
     }
 
@@ -101,7 +109,7 @@ export class OllamaLlmClient implements LlmClient {
   }
 
   async embed(text: string): Promise<number[] | null> {
-    if (!this.config.enabled) {
+    if (!this.config.embeddingsEnabled) {
       return null;
     }
 

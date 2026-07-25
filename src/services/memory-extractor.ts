@@ -40,7 +40,7 @@ export class MemoryExtractor {
       { text: `Curious about ${matchedEntry.title}`, kind: "interest" },
     ];
 
-    if (!this.llm.isEnabled()) {
+    if (!this.llm.isGenerationEnabled()) {
       return fallback;
     }
 

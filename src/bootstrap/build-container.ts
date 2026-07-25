@@ -193,6 +193,10 @@ export const buildContainer = (): ServiceContainer => {
         resolver.resolve(TOKENS.logger),
         resolver.resolve(TOKENS.memoryService),
         resolver.resolve(TOKENS.memoryExtractor),
+        {
+          maxEntries: resolver.resolve(TOKENS.config).llm.maxContextEntries,
+          maxCharsPerEntry: resolver.resolve(TOKENS.config).llm.maxContextCharsPerEntry,
+        },
       ),
   );
 

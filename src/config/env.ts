@@ -43,11 +43,18 @@ export interface AppConfig {
     streamJson: boolean;
   };
   llm: {
-    enabled: boolean;
+    /** Text generation (expensive on CPU — the /ask conversational reply). */
+    generationEnabled: boolean;
+    /** Embeddings (cheap — one forward pass; powers semantic memory recall). */
+    embeddingsEnabled: boolean;
     baseUrl: string;
     model: string;
     embedModel: string;
     timeoutMs: number;
+    /** Lore entries fed to the model as grounding; fewer = far cheaper prompts. */
+    maxContextEntries: number;
+    /** Per-entry character cap applied to that grounding context. */
+    maxContextCharsPerEntry: number;
   };
   extensionRules: {
     maxStandardExtensions: number | null;
@@ -248,13 +255,24 @@ export const loadAppConfig = (): AppConfig => {
     logging: {
       streamJson: readBooleanWithDefault("LOG_STREAM_JSON", false),
     },
-    llm: {
-      enabled: readBooleanWithDefault("LLM_ENABLED", false),
-      baseUrl: readWithDefault("OLLAMA_BASE_URL", "http://localhost:11434"),
-      model: readWithDefault("LLM_MODEL", "llama3.2:3b"),
-      embedModel: readWithDefault("LLM_EMBED_MODEL", "nomic-embed-text"),
-      timeoutMs: readPositiveIntegerWithDefault("LLM_TIMEOUT_MS", 20000),
-    },
+    llm: (() => {
+      // LLM_ENABLED is the legacy master switch; the per-capability flags let a
+      // constrained host run cheap embeddings without paying for generation.
+      const master = readBooleanWithDefault("LLM_ENABLED", false);
+      return {
+        generationEnabled: readBooleanWithDefault("LLM_GENERATION_ENABLED", master),
+        embeddingsEnabled: readBooleanWithDefault("LLM_EMBEDDINGS_ENABLED", master),
+        baseUrl: readWithDefault("OLLAMA_BASE_URL", "http://localhost:11434"),
+        model: readWithDefault("LLM_MODEL", "llama3.2:3b"),
+        embedModel: readWithDefault("LLM_EMBED_MODEL", "nomic-embed-text"),
+        timeoutMs: readPositiveIntegerWithDefault("LLM_TIMEOUT_MS", 20000),
+        maxContextEntries: readPositiveIntegerWithDefault("LLM_MAX_CONTEXT_ENTRIES", 2),
+        maxContextCharsPerEntry: readPositiveIntegerWithDefault(
+          "LLM_MAX_CONTEXT_CHARS_PER_ENTRY",
+          600,
+        ),
+      };
+    })(),
     extensionRules: {
       maxStandardExtensions: readOptionalNonNegativeInteger("MAX_STANDARD_EXTENSIONS"),
       blockTimeLimitedAutoExtension: readBooleanWithDefault(

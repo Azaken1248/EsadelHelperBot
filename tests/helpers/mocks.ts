@@ -50,11 +50,14 @@ export const createTestConfig = (): AppConfig => ({
     streamJson: false,
   },
   llm: {
-    enabled: false,
+    generationEnabled: false,
+    embeddingsEnabled: false,
     baseUrl: "http://localhost:11434",
     model: "llama3.2:3b",
     embedModel: "nomic-embed-text",
     timeoutMs: 20000,
+    maxContextEntries: 2,
+    maxContextCharsPerEntry: 600,
   },
   extensionRules: {
     maxStandardExtensions: 2,

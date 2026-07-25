@@ -4,7 +4,8 @@ import { OllamaLlmClient, type LlmConfig } from "../../src/llm/llm-client";
 import { createMockLogger } from "../helpers/mocks";
 
 const config = (overrides: Partial<LlmConfig> = {}): LlmConfig => ({
-  enabled: true,
+  generationEnabled: true,
+  embeddingsEnabled: true,
   baseUrl: "http://localhost:11434",
   model: "llama3.2:3b",
   timeoutMs: 5000,
@@ -21,8 +22,8 @@ describe("OllamaLlmClient", () => {
     const fetchSpy = vi.fn();
     vi.stubGlobal("fetch", fetchSpy);
 
-    const client = new OllamaLlmClient(config({ enabled: false }), createMockLogger());
-    expect(client.isEnabled()).toBe(false);
+    const client = new OllamaLlmClient(config({ generationEnabled: false, embeddingsEnabled: false }), createMockLogger());
+    expect(client.isGenerationEnabled()).toBe(false);
     expect(await client.generate({ system: "s", prompt: "p" })).toBeNull();
     expect(fetchSpy).not.toHaveBeenCalled();
   });

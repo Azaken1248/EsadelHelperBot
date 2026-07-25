@@ -8,7 +8,8 @@ import { createMockLogger } from "../helpers/mocks";
 const entry = { title: "Shinonome Ena" } as KnowledgeEntry;
 
 const makeLlm = (impl: Partial<LlmClient>): LlmClient => ({
-  isEnabled: () => true,
+  isGenerationEnabled: () => true,
+  isEmbeddingsEnabled: () => true,
   generate: async () => null,
   embed: async () => null,
   ...impl,
@@ -18,7 +19,7 @@ describe("MemoryExtractor", () => {
   it("falls back to deterministic extraction when the LLM is disabled", async () => {
     const generate = vi.fn();
     const extractor = new MemoryExtractor(
-      makeLlm({ isEnabled: () => false, generate }),
+      makeLlm({ isGenerationEnabled: () => false, generate }),
       createMockLogger(),
     );
 

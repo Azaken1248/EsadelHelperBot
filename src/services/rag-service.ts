@@ -50,6 +50,15 @@ const buildUserPrompt = (
  * distillation when available, deterministic topic-interest otherwise). Returns
  * null only when nothing in the knowledge base matches.
  */
+export interface RagContextLimits {
+  /** How many lore entries to ground on (fewer = much cheaper prompt eval). */
+  maxEntries: number;
+  /** Per-entry character cap. */
+  maxCharsPerEntry: number;
+}
+
+const DEFAULT_CONTEXT_LIMITS: RagContextLimits = { maxEntries: 2, maxCharsPerEntry: 600 };
+
 export class RagService {
   constructor(
     private readonly knowledgeService: KnowledgeService,
@@ -57,7 +66,25 @@ export class RagService {
     private readonly logger: Logger,
     private readonly memoryService?: MemoryService,
     private readonly memoryExtractor?: MemoryExtractor,
+    private readonly contextLimits: RagContextLimits = DEFAULT_CONTEXT_LIMITS,
   ) {}
+
+  /**
+   * Grounding context is the dominant cost on CPU-only hosts (prompt eval), so
+   * it is capped by entry count and length rather than sending everything.
+   */
+  private buildContext(sources: KnowledgeEntry[]): string {
+    return sources
+      .slice(0, this.contextLimits.maxEntries)
+      .map((entry) => {
+        const body =
+          entry.content.length > this.contextLimits.maxCharsPerEntry
+            ? `${entry.content.slice(0, this.contextLimits.maxCharsPerEntry)}…`
+            : entry.content;
+        return `## ${entry.title}\n${body}`;
+      })
+      .join("\n\n");
+  }
 
   async ask(question: string, discordUserId?: string): Promise<RagAnswer | null> {
     const { best, related } = this.knowledgeService.answer(question);
@@ -75,8 +102,8 @@ export class RagService {
       this.memoryService && discordUserId ? this.memoryService.recentTurns(discordUserId) : [];
 
     let answer: RagAnswer;
-    if (this.llm.isEnabled()) {
-      const context = sources.map((entry) => `## ${entry.title}\n${entry.content}`).join("\n\n");
+    if (this.llm.isGenerationEnabled()) {
+      const context = this.buildContext(sources);
       const generated = await this.llm.generate({
         system: AMIA_SYSTEM_PROMPT,
         prompt: buildUserPrompt(question, context, memoryTexts, recentTurns),
