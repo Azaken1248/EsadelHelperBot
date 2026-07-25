@@ -33,10 +33,31 @@ describe("RagService", () => {
 
     expect(answer?.generated).toBe(true);
     expect(answer?.sources).toEqual([]); // nothing to cite
-    // must be told it has no lore, and forbidden from inventing any
     const { system } = generate.mock.calls[0][0];
-    expect(system).toContain("NO lore context");
-    expect(system).toContain("do NOT state any specific facts");
+    expect(system).toContain("No lore was retrieved");
+    // still knows herself, but must not invent deeper story facts
+    expect(system).toContain("WHO YOU ARE");
+    expect(system).toContain("Amia");
+    expect(system).toContain("do NOT state specific facts you weren't given");
+  });
+
+  it("always carries her self-knowledge, grounded or not", async () => {
+    const generate = vi.fn().mockResolvedValue("hi~");
+    const service = new RagService(
+      knowledge,
+      makeLlm({ isGenerationEnabled: () => true, generate }),
+      createMockLogger(),
+    );
+
+    await service.ask("who is Ena?"); // grounded path
+    await service.ask("quarterly tax filing spreadsheet"); // ungrounded path
+
+    for (const call of generate.mock.calls) {
+      const system = call[0].system as string;
+      expect(system).toContain("WHO YOU ARE");
+      expect(system).toContain("25-ji, Nightcord de.");
+      expect(system).toContain("Project Esadel");
+    }
   });
 
   it("still returns null on no match if the ungrounded generation also fails", async () => {
