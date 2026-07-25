@@ -46,7 +46,12 @@ export class OpenAiCompatibleLlmClient implements LlmClient {
     return `${this.config.apiBaseUrl.replace(/\/+$/, "")}${path}`;
   }
 
-  private async post<T>(path: string, body: unknown, label: string): Promise<T | null> {
+  private async post<T>(
+    path: string,
+    body: unknown,
+    label: string,
+    model: string,
+  ): Promise<T | null> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), this.config.timeoutMs);
 
@@ -65,7 +70,7 @@ export class OpenAiCompatibleLlmClient implements LlmClient {
         // 429 is the common free-tier outcome; treat it like any other failure.
         this.logger.warn(`Remote ${label} returned a non-OK status.`, {
           status: response.status,
-          model: this.config.model,
+          model,
         });
         return null;
       }
@@ -98,6 +103,7 @@ export class OpenAiCompatibleLlmClient implements LlmClient {
         max_tokens: options?.maxTokens ?? 320,
       },
       "LLM",
+      this.config.model,
     );
 
     const content = json?.choices?.[0]?.message?.content?.trim();
@@ -113,6 +119,7 @@ export class OpenAiCompatibleLlmClient implements LlmClient {
       "/embeddings",
       { model: this.config.embedModel, input: text },
       "embedding model",
+      this.config.embedModel,
     );
 
     const embedding = json?.data?.[0]?.embedding;
