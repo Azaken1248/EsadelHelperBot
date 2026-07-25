@@ -50,6 +50,9 @@ export const createTestConfig = (): AppConfig => ({
     streamJson: false,
   },
   llm: {
+    provider: "ollama",
+    apiBaseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
+    apiKey: null,
     generationEnabled: false,
     embeddingsEnabled: false,
     baseUrl: "http://localhost:11434",

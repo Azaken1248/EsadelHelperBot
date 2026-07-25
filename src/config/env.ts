@@ -4,6 +4,8 @@ import {
   type SpecializedRoleKey,
 } from "./constants";
 
+export type LlmProvider = "ollama" | "openai";
+
 export interface AppConfig {
   discord: {
     token: string;
@@ -43,6 +45,12 @@ export interface AppConfig {
     streamJson: boolean;
   };
   llm: {
+    /** "ollama" (local) or "openai" (any OpenAI-compatible API: Gemini, Groq, …). */
+    provider: LlmProvider;
+    /** Base URL for the openai provider, ending at the version segment. */
+    apiBaseUrl: string;
+    /** API key for the openai provider; null disables it. */
+    apiKey: string | null;
     /** Text generation (expensive on CPU — the /ask conversational reply). */
     generationEnabled: boolean;
     /** Embeddings (cheap — one forward pass; powers semantic memory recall). */
@@ -259,7 +267,17 @@ export const loadAppConfig = (): AppConfig => {
       // LLM_ENABLED is the legacy master switch; the per-capability flags let a
       // constrained host run cheap embeddings without paying for generation.
       const master = readBooleanWithDefault("LLM_ENABLED", false);
+      const provider = readWithDefault("LLM_PROVIDER", "ollama");
+      if (provider !== "ollama" && provider !== "openai") {
+        throw new Error("LLM_PROVIDER must be either 'ollama' or 'openai'.");
+      }
       return {
+        provider,
+        apiBaseUrl: readWithDefault(
+          "LLM_API_BASE_URL",
+          "https://generativelanguage.googleapis.com/v1beta/openai",
+        ),
+        apiKey: readOptionalEnv("LLM_API_KEY"),
         generationEnabled: readBooleanWithDefault("LLM_GENERATION_ENABLED", master),
         embeddingsEnabled: readBooleanWithDefault("LLM_EMBEDDINGS_ENABLED", master),
         baseUrl: readWithDefault("OLLAMA_BASE_URL", "http://localhost:11434"),

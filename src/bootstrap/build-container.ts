@@ -28,6 +28,7 @@ import { AssignmentService } from "../services/assignment-service";
 import { BulkAssignmentService } from "../services/bulk-assignment-service";
 import { ConfigCacheService } from "../services/config-cache-service";
 import { OllamaLlmClient } from "../llm/llm-client";
+import { OpenAiCompatibleLlmClient } from "../llm/openai-compatible-llm-client";
 import { GatekeeperService } from "../services/gatekeeper-service";
 import { KnowledgeService } from "../services/knowledge-service";
 import { MemoryExtractor } from "../services/memory-extractor";
@@ -156,14 +157,19 @@ export const buildContainer = (): ServiceContainer => {
     () => new KnowledgeService(),
   );
 
-  container.registerSingleton(
-    TOKENS.llmClient,
-    (resolver) =>
-      new OllamaLlmClient(
-        resolver.resolve(TOKENS.config).llm,
-        resolver.resolve(TOKENS.logger),
-      ),
-  );
+  container.registerSingleton(TOKENS.llmClient, (resolver) => {
+    const llm = resolver.resolve(TOKENS.config).llm;
+    const logger = resolver.resolve(TOKENS.logger);
+
+    if (llm.provider === "openai") {
+      if (!llm.apiKey && (llm.generationEnabled || llm.embeddingsEnabled)) {
+        logger.warn("LLM_PROVIDER=openai but LLM_API_KEY is unset — the LLM stays disabled.");
+      }
+      return new OpenAiCompatibleLlmClient(llm, logger);
+    }
+
+    return new OllamaLlmClient(llm, logger);
+  });
 
   container.registerSingleton(
     TOKENS.memoryService,
