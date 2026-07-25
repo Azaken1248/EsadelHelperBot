@@ -16,9 +16,44 @@ const makeLlm = (impl: Partial<LlmClient>): LlmClient => ({
 });
 
 describe("RagService", () => {
-  it("returns null when nothing in the knowledge base matches", async () => {
+  it("returns null on no match when generation is unavailable", async () => {
     const service = new RagService(knowledge, makeLlm({}), createMockLogger());
     expect(await service.ask("quarterly tax filing spreadsheet")).toBeNull();
+  });
+
+  it("answers conversationally (ungrounded) on no match when generation is on", async () => {
+    const generate = vi.fn().mockResolvedValue("Hehe~ no idea about that one! ♪");
+    const service = new RagService(
+      knowledge,
+      makeLlm({ isGenerationEnabled: () => true, generate }),
+      createMockLogger(),
+    );
+
+    const answer = await service.ask("quarterly tax filing spreadsheet");
+
+    expect(answer?.generated).toBe(true);
+    expect(answer?.sources).toEqual([]); // nothing to cite
+    // must be told it has no lore, and forbidden from inventing any
+    const { system } = generate.mock.calls[0][0];
+    expect(system).toContain("NO lore context");
+    expect(system).toContain("do NOT state any specific facts");
+  });
+
+  it("still returns null on no match if the ungrounded generation also fails", async () => {
+    const service = new RagService(
+      knowledge,
+      makeLlm({ isGenerationEnabled: () => true, generate: async () => null }),
+      createMockLogger(),
+    );
+    expect(await service.ask("quarterly tax filing spreadsheet")).toBeNull();
+  });
+
+  it("matches natural self-referential questions", async () => {
+    for (const q of ["who are you", "tell me about yourself", "what do you do"]) {
+      const service = new RagService(knowledge, makeLlm({}), createMockLogger());
+      const answer = await service.ask(q);
+      expect(answer, `expected a match for "${q}"`).not.toBeNull();
+    }
   });
 
   it("returns retrieved text verbatim when the LLM is disabled", async () => {

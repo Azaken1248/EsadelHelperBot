@@ -26,7 +26,9 @@ const STOP_WORDS = new Set([
   "the", "a", "an", "is", "are", "was", "were", "be", "been", "do", "does",
   "did", "of", "to", "in", "on", "at", "for", "and", "or", "but", "with", "as",
   "by", "from", "that", "this", "these", "those", "it", "its", "what", "who",
-  "whom", "whose", "why", "how", "when", "where", "which", "you", "your", "me",
+  // NOTE: "you"/"your"/"yourself" are deliberately NOT stop words — addressed to
+  // a bot they are meaningful ("who are you", "tell me about yourself").
+  "whom", "whose", "why", "how", "when", "where", "which", "me",
   "my", "i", "we", "us", "about", "tell", "can", "could", "would", "please",
   "there", "here", "so", "some", "any", "all",
 ]);

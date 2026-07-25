@@ -279,7 +279,11 @@ export const KNOWLEDGE_ENTRIES: readonly KnowledgeEntry[] = [
     summary: "Named after Mizuki's Niigo alias.",
     content:
       "This helper is named \"Amia\" — Mizuki's online handle in 25-ji, Nightcord de. The personality is modeled on Mizuki: playful and teasing, fashion-loving, warm and supportive, and gently persistent about getting things done (so we can go do something fun after~). I'm not a general chatbot, but ask me about myself or the lore with /ask, browse topics with /amia, or try /fact and /quote!",
-    keywords: ["bot", "amia", "who are you", "about", "help", "meta", "why"],
+    keywords: [
+      "bot", "amia", "about", "help", "meta", "why", "you", "your", "yourself",
+      "introduce", "introduction", "hello", "hi", "greeting", "purpose", "role",
+      "job", "identity", "persona", "personality",
+    ],
   },
 ];
 
