@@ -52,6 +52,49 @@ function resolveAccessLabel(
   return "Restricted";
 }
 
+// Discord caps an embed field value at 1024 characters. With 25+ commands the
+// "Everyone" listing blows past that, so long lists are split across
+// continuation fields instead of failing the whole reply.
+const MAX_FIELD_VALUE = 1024;
+
+interface EmbedField {
+  name: string;
+  value: string;
+  inline: boolean;
+}
+
+const buildChunkedFields = (name: string, lines: string[]): EmbedField[] => {
+  const fields: EmbedField[] = [];
+  let current: string[] = [];
+  let length = 0;
+
+  const flush = (): void => {
+    if (current.length === 0) {
+      return;
+    }
+    fields.push({
+      name: fields.length === 0 ? name : `${name} (cont.)`,
+      value: current.join("\n"),
+      inline: false,
+    });
+    current = [];
+    length = 0;
+  };
+
+  for (const line of lines) {
+    const truncated = line.length > MAX_FIELD_VALUE ? `${line.slice(0, MAX_FIELD_VALUE - 1)}…` : line;
+    const addition = current.length === 0 ? truncated.length : truncated.length + 1; // +1 for "\n"
+    if (length + addition > MAX_FIELD_VALUE) {
+      flush();
+    }
+    current.push(truncated);
+    length += current.length === 1 ? truncated.length : truncated.length + 1;
+  }
+  flush();
+
+  return fields;
+};
+
 interface ParsedOption {
   name: string;
   description: string;
@@ -145,14 +188,14 @@ export class HelpCommand implements SlashCommand {
 
     const fields = Object.entries(groups)
       .filter(([, cmds]) => cmds.length > 0)
-      .map(([label, cmds]) => ({
-        name: `◈ ${label}`,
-        value: cmds
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .map((c) => `> \`/${c.name}\` — ${c.desc}`)
-          .join("\n"),
-        inline: false,
-      }));
+      .flatMap(([label, cmds]) =>
+        buildChunkedFields(
+          `◈ ${label}`,
+          cmds
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((c) => `> \`/${c.name}\` — ${c.desc}`),
+        ),
+      );
 
     await interaction.reply({
       embeds: [
@@ -214,11 +257,7 @@ export class HelpCommand implements SlashCommand {
         return `> \`${opt.name}\` (${opt.type}) — ${opt.description} [${reqBadge}]`;
       });
 
-      fields.push({
-        name: `◈ Parameters (${options.length})`,
-        value: paramLines.join("\n"),
-        inline: false,
-      });
+      fields.push(...buildChunkedFields(`◈ Parameters (${options.length})`, paramLines));
     } else {
       fields.push({
         name: "◈ Parameters",
