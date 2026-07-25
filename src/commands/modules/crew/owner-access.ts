@@ -29,7 +29,8 @@ export const ensureOwnerAccess = async (
     return true;
   }
 
-  let ownerRoleIds: string[] = [];
+  // Both branches below assign before any read, so no initializer is needed.
+  let ownerRoleIds: string[];
 
   try {
     const cachedConfig = context.configCacheService.getConfig(interaction.guildId);
