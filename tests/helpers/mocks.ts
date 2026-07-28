@@ -41,7 +41,7 @@ export const createTestConfig = (): AppConfig => ({
     webPortalUrl: "https://portal.test",
   },
   web: {
-    port: 3000,
+    port: 3010,
     jwtSecret: "jwt-secret",
     corsOrigins: [],
     rateLimitPerMinute: 60,

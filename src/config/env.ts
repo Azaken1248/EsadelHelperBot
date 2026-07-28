@@ -255,7 +255,7 @@ export const loadAppConfig = (): AppConfig => {
       webPortalUrl: readOptionalEnv("WEB_PORTAL_URL"),
     },
     web: {
-      port: readPositiveIntegerWithDefault("WEBSITE_PORT", 3000),
+      port: readPositiveIntegerWithDefault("WEBSITE_PORT", 3010),
       jwtSecret: readOptionalEnv("ANALYTICS_JWT_SECRET"),
       corsOrigins: readCsvList("API_CORS_ORIGINS"),
       rateLimitPerMinute: readPositiveIntegerWithDefault("API_RATE_LIMIT_PER_MINUTE", 60),

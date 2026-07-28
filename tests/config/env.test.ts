@@ -46,7 +46,7 @@ describe("loadAppConfig", () => {
       secretKey: null,
       webPortalUrl: null,
     });
-    expect(config.web.port).toBe(3000);
+    expect(config.web.port).toBe(3010);
     expect(config.web.jwtSecret).toBeNull();
   });
 
